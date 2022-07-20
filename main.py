@@ -120,10 +120,31 @@ if authentication_status:
             st.subheader('Total')
             col4.metric('Payment:', f'RM{fees_total.sum():,.2f}')
             col4.metric('Jobs:', fees_total.__len__())
+        
+        # Graph
+        fig_bar = make_subplots(shared_xaxes=True, specs=[[{'secondary_y': True}]])
+        fig_bar.add_trace(go.Bar(x = ['2020','2021','2022'], y = [fees_2020.sum(),fees_2021.sum(),fees_2022.sum()],name='RM'))
+        fig_bar.add_trace(go.Scatter(x = ['2020','2021','2022'], y = [fees_2020.sum(),fees_2021.sum(),fees_2022.sum()],name='RM',
+                                        mode='lines',line = dict(color='red', width=1)), secondary_y=False)
+        fig_bar.update_layout(title_text='Annual Fees (RM)',title_x=0.5, height=350, font=dict(family="Helvetica", size=10),
+                            xaxis=dict(tickmode="array"),plot_bgcolor="rgba(0,0,0,0)",yaxis=(dict(showgrid=False)),yaxis_title=None,showlegend=False)
+        fig_bar.update_annotations(font=dict(family="Helvetica", size=10))
+        fig_bar.update_xaxes(title_text='', showgrid=False, zeroline=False, showline=True, linewidth=2, linecolor='black')
+        fig_bar.update_yaxes(showgrid=False, zeroline=False, showline=True, linewidth=2, linecolor='black')
+        # PIE CHART Cost
+        fig_pie = make_subplots(specs=[[{"type": "domain"}]])
+        fig_pie.add_trace(go.Pie(values=[fees_2020.sum(),fees_2021.sum(),fees_2022.sum()],labels=['2020','2021','2022'],textposition='inside',
+                        textinfo='label+percent'),row=1, col=1)
+        fig_pie.update_annotations(font=dict(family="Helvetica", size=10))
+        fig_pie.update_layout(height=350,showlegend=False,title_text='Annual Fees (%)',title_x=0.5,font=dict(family="Helvetica", size=10))            
+        # Chart Presentation
+        col1, col2 = st.columns(2)
+        col1.plotly_chart(fig_bar, use_container_width=True)
+        col2.plotly_chart(fig_pie, use_container_width=True)
 
         with st.expander('Dataframe:'):
             st.dataframe(df_new.sort_values(by='date_y'))
-
+        
     if selected == 'Job Sheet':
         st.header('Job Sheet Form')
         #st.write("---")
