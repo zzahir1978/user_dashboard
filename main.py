@@ -81,12 +81,12 @@ if authentication_status:
         col1, col2 = st.columns(2)
         col1.metric('Total Payment:', f'RM{fees.sum():,.2f}')
         col2.metric('Total Jobs:', fees.__len__())
-        clients = df['client'].map(Counter).groupby(df['key']).sum()
-        clients = df['client'].apply(lambda x: x.get('cli')).dropna()
-        dats = df['date'].map(Counter).groupby(df['key']).sum()
-        dats = df['date'].apply(lambda x: x.get('dat')).dropna()
+        #clients = df['client'].map(Counter).groupby(df['key']).sum()
+        #clients = df['client'].apply(lambda x: x.get('cli')).dropna()
+        #dats = df['date'].map(Counter).groupby(df['key']).sum()
+        #dats = df['date'].apply(lambda x: x.get('dat')).dropna()
         with st.expander('Dataframe:'):
-            st.table(df)
+            st.dataframe(df)
 
     if selected == 'Job Sheet':
         st.header('Job Sheet Form')
