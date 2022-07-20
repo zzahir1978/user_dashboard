@@ -1,3 +1,4 @@
+from email.utils import collapse_rfc2231_value
 import streamlit as st
 from streamlit_option_menu import option_menu
 import streamlit.components.v1 as components
@@ -13,6 +14,8 @@ import datetime
 import calendar
 import json
 from collections import Counter
+import calendar
+from datetime import datetime
 
 st.set_page_config('User Dashboard', ':file_folder:', layout='wide')         # https://www.webfx.com/tools/emoji-cheat-sheet/
 st.title(':file_folder:' + " " + 'User Dashboard')
@@ -76,17 +79,50 @@ if authentication_status:
         df = fetch_all_dates()
         df = json.dumps(df)
         df = pd.read_json(df)
-        fees = df['payment'].map(Counter).groupby(df['key']).sum()
-        fees = df['payment'].apply(lambda x: x.get('Fees')).dropna()
-        col1, col2 = st.columns(2)
-        col1.metric('Total Payment:', f'RM{fees.sum():,.2f}')
-        col2.metric('Total Jobs:', fees.__len__())
-        #clients = df['client'].map(Counter).groupby(df['key']).sum()
-        #clients = df['client'].apply(lambda x: x.get('cli')).dropna()
-        #dats = df['date'].map(Counter).groupby(df['key']).sum()
-        #dats = df['date'].apply(lambda x: x.get('dat')).dropna()
+        dats = df['date'].map(Counter).groupby(df['key']).sum()
+        dats = df['date'].apply(lambda x: x.get('dat')).dropna()
+        df_new = pd.merge(df, dats, left_index=True, right_index=True)
+        df_new['date_y'] = pd.to_datetime(df_new['date_y'])
+        # Creating yearly table
+        # 2020
+        df_2020 = df_new[(df_new['date_y'] >= "2020-01-01") & (df_new['date_y'] <="2020-12-01")]
+        df_2020 = df_2020.sort_values(by='date_y')
+        # 2021
+        df_2021 = df_new[(df_new['date_y'] >= "2021-01-01") & (df_new['date_y'] <="2021-12-01")]
+        df_2021 = df_2021.sort_values(by='date_y')
+        # 2022
+        df_2022 = df_new[(df_new['date_y'] >= "2022-01-01") & (df_new['date_y'] <="2022-12-01")]
+        df_2022 = df_2022.sort_values(by='date_y')
+        
+        fees_total = df['payment'].map(Counter).groupby(df['key']).sum()
+        fees_total = df['payment'].apply(lambda x: x.get('Fees')).dropna()
+        fees_2020 = df_2020['payment'].map(Counter).groupby(df_2020['key']).sum()
+        fees_2020 = df_2020['payment'].apply(lambda x: x.get('Fees')).dropna()
+        fees_2021 = df_2021['payment'].map(Counter).groupby(df_2021['key']).sum()
+        fees_2021 = df_2021['payment'].apply(lambda x: x.get('Fees')).dropna()
+        fees_2022 = df_2022['payment'].map(Counter).groupby(df_2022['key']).sum()
+        fees_2022 = df_2022['payment'].apply(lambda x: x.get('Fees')).dropna()
+
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            st.subheader('Year 2020')
+            col1.metric('Payment:', f'RM{fees_2020.sum():,.2f}')
+            col1.metric('Jobs:', fees_2020.__len__())
+        with col2:
+            st.subheader('Year 2021')
+            col2.metric('Payment:', f'RM{fees_2021.sum():,.2f}')
+            col2.metric('Jobs:', fees_2021.__len__())
+        with col3:
+            st.subheader('Year 2022')
+            col3.metric('Payment:', f'RM{fees_2022.sum():,.2f}')
+            col3.metric('Jobs:', fees_2022.__len__())
+        with col4:
+            st.subheader('Total')
+            col4.metric('Payment:', f'RM{fees_total.sum():,.2f}')
+            col4.metric('Jobs:', fees_total.__len__())
+
         with st.expander('Dataframe:'):
-            st.dataframe(df)
+            st.dataframe(df_new.sort_values(by='date_y'))
 
     if selected == 'Job Sheet':
         st.header('Job Sheet Form')
@@ -121,7 +157,7 @@ if authentication_status:
                 pay = {payment: st.session_state[payment] for payment in pay}
                 dat = {date: st.session_state[date] for date in dat}
                 insert_date(dat, cli, add, cat, des, pay)
-                st.success('Data Submitted')
+                st.success('Data saved!')
 
 # --- HIDE STREAMLIT STYLE ---
 
