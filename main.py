@@ -103,6 +103,15 @@ if authentication_status:
         fees_2022 = df_2022['payment'].map(Counter).groupby(df_2022['key']).sum()
         fees_2022 = df_2022['payment'].apply(lambda x: x.get('Fees')).dropna()
 
+        clients = df['client'].map(Counter).groupby(df['key']).sum()
+        clients = df['client'].apply(lambda x: x.get('cli')).dropna()
+        Fees = df['payment'].map(Counter).groupby(df['key']).sum()
+        Fees = df['payment'].apply(lambda x: x.get('Fees')).dropna()
+        clients = pd.merge(clients, Fees, left_index=True, right_index=True)
+        clients = clients.groupby('client').sum()
+        
+        #st.write(clients.groupby('client').sum())
+
         col1, col2, col3, col4 = st.columns(4)
         with col1:
             st.subheader('Year 2020')
@@ -142,9 +151,11 @@ if authentication_status:
         col1.plotly_chart(fig_bar, use_container_width=True)
         col2.plotly_chart(fig_pie, use_container_width=True)
 
+        with st.expander('List Of Clients:'):
+            st.dataframe(clients.reset_index())
         with st.expander('Dataframe:'):
             st.dataframe(df_new.sort_values(by='date_y'))
-        
+
     if selected == 'Job Sheet':
         st.header('Job Sheet Form')
         #st.write("---")
