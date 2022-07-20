@@ -1,0 +1,1 @@
+web:shsetup.sh && streamlit run app.py
