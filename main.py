@@ -109,6 +109,7 @@ if authentication_status:
         Fees = df['payment'].apply(lambda x: x.get('Fees')).dropna()
         clients = pd.merge(clients, Fees, left_index=True, right_index=True)
         clients = clients.groupby('client').sum()
+        clients['payment'] = clients['payment'].map('RM{:,.2f}'.format)
         
         #st.write(clients.groupby('client').sum())
 
@@ -178,7 +179,7 @@ if authentication_status:
 
             #with st.expander("Payment:"):
             for payment in pay:
-                st.number_input(f"{payment}:", min_value=0, format="%i", key=payment)
+                st.number_input(f"{payment}:", min_value=0.0, max_value=10000.0, step=1e-3, format="%.2f", key=payment)
             
             submitted = st.form_submit_button('Submit')
             if submitted:
