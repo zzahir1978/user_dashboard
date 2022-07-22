@@ -1,3 +1,4 @@
+from cgitb import text
 from email.utils import collapse_rfc2231_value
 import streamlit as st
 from streamlit_option_menu import option_menu
@@ -79,19 +80,42 @@ if authentication_status:
         df = fetch_all_dates()
         df = json.dumps(df)
         df = pd.read_json(df)
-        dats = df['date'].map(Counter).groupby(df['key']).sum()
-        dats = df['date'].apply(lambda x: x.get('dat')).dropna()
-        df_new = pd.merge(df, dats, left_index=True, right_index=True)
-        df_new['date_y'] = pd.to_datetime(df_new['date_y'])
+        # Creating new columns
+        address_1 = df['address'].map(Counter).groupby(df['key']).sum()
+        address_1 = df['address'].apply(lambda x: x.get('add')).dropna()
+        category_1 = df['category'].map(Counter).groupby(df['key']).sum()
+        category_1 = df['category'].apply(lambda x: x.get('cat')).dropna()
+        client_1 = df['client'].map(Counter).groupby(df['key']).sum()
+        client_1 = df['client'].apply(lambda x: x.get('cli')).dropna()
+        date_1 = df['date'].map(Counter).groupby(df['key']).sum()
+        date_1 = df['date'].apply(lambda x: x.get('dat')).dropna()
+        description_1 = df['description'].map(Counter).groupby(df['key']).sum()
+        description_1 = df['description'].apply(lambda x: x.get('des')).dropna()
+        payment_1 = df['payment'].map(Counter).groupby(df['key']).sum()
+        payment_1 = df['payment'].apply(lambda x: x.get('Fees')).dropna()
+        # Combined all new columns
+        df_new = pd.merge(address_1, category_1, left_index=True, right_index=True)
+        df_new = pd.merge(df_new, client_1, left_index=True, right_index=True)
+        df_new = pd.merge(df_new, date_1, left_index=True, right_index=True)
+        df_new = pd.merge(df_new, description_1, left_index=True, right_index=True)
+        df_new = pd.merge(df_new, payment_1, left_index=True, right_index=True)
+        df_new['payment'] = df_new['payment'].map('RM{:,.2f}'.format)
+        df_new['date'] = pd.to_datetime(df_new['date'])
+        clients = pd.merge(client_1, payment_1, left_index=True, right_index=True)
+        clients = clients.groupby('client').sum()
+        clients['payment'] = clients['payment'].map('RM{:,.2f}'.format)
+
+        df = pd.merge(df, date_1, left_index=True, right_index=True)
+        df['date_y'] = pd.to_datetime(df['date_y'])
         # Creating yearly table
         # 2020
-        df_2020 = df_new[(df_new['date_y'] >= "2020-01-01") & (df_new['date_y'] <="2020-12-01")]
+        df_2020 = df[(df['date_y'] >= "2020-01-01") & (df['date_y'] <="2020-12-01")]
         df_2020 = df_2020.sort_values(by='date_y')
         # 2021
-        df_2021 = df_new[(df_new['date_y'] >= "2021-01-01") & (df_new['date_y'] <="2021-12-01")]
+        df_2021 = df[(df['date_y'] >= "2021-01-01") & (df['date_y'] <="2021-12-01")]
         df_2021 = df_2021.sort_values(by='date_y')
         # 2022
-        df_2022 = df_new[(df_new['date_y'] >= "2022-01-01") & (df_new['date_y'] <="2022-12-01")]
+        df_2022 = df[(df['date_y'] >= "2022-01-01") & (df['date_y'] <="2022-12-01")]
         df_2022 = df_2022.sort_values(by='date_y')
         
         fees_total = df['payment'].map(Counter).groupby(df['key']).sum()
@@ -102,16 +126,6 @@ if authentication_status:
         fees_2021 = df_2021['payment'].apply(lambda x: x.get('Fees')).dropna()
         fees_2022 = df_2022['payment'].map(Counter).groupby(df_2022['key']).sum()
         fees_2022 = df_2022['payment'].apply(lambda x: x.get('Fees')).dropna()
-
-        clients = df['client'].map(Counter).groupby(df['key']).sum()
-        clients = df['client'].apply(lambda x: x.get('cli')).dropna()
-        Fees = df['payment'].map(Counter).groupby(df['key']).sum()
-        Fees = df['payment'].apply(lambda x: x.get('Fees')).dropna()
-        clients = pd.merge(clients, Fees, left_index=True, right_index=True)
-        clients = clients.groupby('client').sum()
-        clients['payment'] = clients['payment'].map('RM{:,.2f}'.format)
-        
-        #st.write(clients.groupby('client').sum())
 
         col1, col2, col3, col4 = st.columns(4)
         with col1:
@@ -133,9 +147,9 @@ if authentication_status:
         
         # Graph
         fig_bar = make_subplots(shared_xaxes=True, specs=[[{'secondary_y': True}]])
-        fig_bar.add_trace(go.Bar(x = ['2020','2021','2022'], y = [fees_2020.sum(),fees_2021.sum(),fees_2022.sum()],name='RM'))
-        fig_bar.add_trace(go.Scatter(x = ['2020','2021','2022'], y = [fees_2020.sum(),fees_2021.sum(),fees_2022.sum()],name='RM',
-                                        mode='lines',line = dict(color='red', width=1)), secondary_y=False)
+        fig_bar.add_trace(go.Bar(x = ['2020','2021','2022'], y = [fees_2020.sum(),fees_2021.sum(),fees_2022.sum()],name='RM', 
+            text=[fees_2020.sum(),fees_2021.sum(),fees_2022.sum()]))
+        fig_bar.update_traces(texttemplate='%{text:.2f}', textposition='auto')
         fig_bar.update_layout(title_text='Annual Fees (RM)',title_x=0.5, height=350, font=dict(family="Helvetica", size=10),
                             xaxis=dict(tickmode="array"),plot_bgcolor="rgba(0,0,0,0)",yaxis=(dict(showgrid=False)),yaxis_title=None,showlegend=False)
         fig_bar.update_annotations(font=dict(family="Helvetica", size=10))
@@ -155,7 +169,7 @@ if authentication_status:
         with st.expander('List Of Clients:'):
             st.dataframe(clients.reset_index())
         with st.expander('Dataframe:'):
-            st.dataframe(df_new.sort_values(by='date_y'))
+            st.dataframe(df_new.sort_values(by='date'))
 
     if selected == 'Job Sheet':
         st.header('Job Sheet Form')
@@ -169,13 +183,13 @@ if authentication_status:
                     st.text_input('Address:', placeholder='Please enter client address', key=address)
             with col2:
                 for date in dat:
-                    st.text_input('Date:', key=date)
+                    st.text_input('Date:', placeholder='Date format in dd/mm/yy',key=date)
                 for category in cat:
                     #st.text_input('Category:', key=category)
-                    st.selectbox('Category:',('Inspection','Online Survey'), key=category)
+                    st.selectbox('Category:',('Inspection','Online Survey','Voice Recording','Website Design'), key=category)
             st.write("---")
             for description in des:
-                st.text_input('Works Description:', placeholder='Please enter works description here', key=description)
+                st.text_area('Works Description:', placeholder='Please enter works description here', key=description)
 
             #with st.expander("Payment:"):
             for payment in pay:
