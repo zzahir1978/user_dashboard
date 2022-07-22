@@ -18,8 +18,8 @@ from collections import Counter
 import calendar
 from datetime import datetime
 
-st.set_page_config('User Dashboard', ':file_folder:', layout='wide')         # https://www.webfx.com/tools/emoji-cheat-sheet/
-st.title(':file_folder:' + " " + 'User Dashboard')
+st.set_page_config('Job Sheet Dashboard', ':file_folder:', layout='wide')         # https://www.webfx.com/tools/emoji-cheat-sheet/
+st.title(':file_folder:' + " " + 'Job Sheet Dashboard')
 
 # Settings For Job Sheet Database
 dat = ['dat']
@@ -101,6 +101,9 @@ if authentication_status:
         df_new = pd.merge(df_new, payment_1, left_index=True, right_index=True)
         df_new['payment'] = df_new['payment'].map('RM{:,.2f}'.format)
         df_new['date'] = pd.to_datetime(df_new['date'])
+        df_new = df_new.sort_values(by='date')
+        df_new['date'] = df_new['date'].astype(str).str.replace('T','-', regex=True)
+
         clients = pd.merge(client_1, payment_1, left_index=True, right_index=True)
         clients = clients.groupby('client').sum()
         clients['payment'] = clients['payment'].map('RM{:,.2f}'.format)
@@ -169,7 +172,7 @@ if authentication_status:
         with st.expander('List Of Clients:'):
             st.dataframe(clients.reset_index())
         with st.expander('Dataframe:'):
-            st.dataframe(df_new.sort_values(by='date'))
+            st.dataframe(df_new)
 
     if selected == 'Job Sheet':
         st.header('Job Sheet Form')
@@ -183,7 +186,7 @@ if authentication_status:
                     st.text_input('Address:', placeholder='Please enter client address', key=address)
             with col2:
                 for date in dat:
-                    st.text_input('Date:', placeholder='Date format in dd/mm/yy',key=date)
+                    st.text_input('Date:', placeholder='Date format in mm/dd/yy',key=date)
                 for category in cat:
                     #st.text_input('Category:', key=category)
                     st.selectbox('Category:',('Inspection','Online Survey','Voice Recording','Website Design'), key=category)
