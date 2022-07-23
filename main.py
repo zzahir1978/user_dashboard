@@ -170,9 +170,18 @@ if authentication_status:
         col2.plotly_chart(fig_pie, use_container_width=True)
 
         with st.expander('List Of Clients:'):
-            st.dataframe(clients.reset_index())
+            clients = clients.reset_index()    
+            fig_table_client = go.Figure(data=[go.Table(header=dict(values=list(clients.columns),fill_color='paleturquoise',align='center'),
+                                cells=dict(values=[clients.client, clients.payment],fill_color='lavender',align='left'))])
+            st.plotly_chart(fig_table_client, use_container_width=True)
+            #st.dataframe(clients.reset_index())
         with st.expander('Dataframe:'):
-            st.dataframe(df_new)
+            fig_table_dataframe = go.Figure(
+                data=[go.Table(header=dict(values=list(df_new.columns),fill_color='paleturquoise',align='center'),
+                cells=dict(values=[df_new.address, df_new.category, df_new.client, df_new.date, df_new.description, df_new.payment],
+                fill_color='lavender',align='left'))])
+            st.plotly_chart(fig_table_dataframe, use_container_width=True)
+            #st.dataframe(df_new)
 
     if selected == 'Job Sheet':
         st.header('Job Sheet Form')
