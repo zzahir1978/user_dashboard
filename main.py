@@ -1,4 +1,5 @@
 from cgitb import text
+from cmath import exp
 from email.utils import collapse_rfc2231_value
 import streamlit as st
 from streamlit_option_menu import option_menu
@@ -18,8 +19,8 @@ from collections import Counter
 import calendar
 from datetime import datetime
 
-st.set_page_config('Job Sheet Dashboard', ':file_folder:', layout='wide')         # https://www.webfx.com/tools/emoji-cheat-sheet/
-st.title(':file_folder:' + " " + 'Job Sheet Dashboard')
+st.set_page_config('User Dashboard', ':file_folder:', layout='wide')         # https://www.webfx.com/tools/emoji-cheat-sheet/
+st.title(':file_folder:' + " " + 'User Dashboard')
 
 # Settings For Job Sheet Database
 dat = ['dat']
@@ -34,13 +35,33 @@ DETA_KEY = 'c0jo61nr_19VVPZAnQBZPws1WGgaU2HDCW1kyth28'
 deta = Deta(DETA_KEY)
 db = deta.Base('job_sheet')
 
-def insert_date(dat, cli, add, cat, des, pay):
+def insert_job(dat, cli, add, cat, des, pay):
     """Returns the user on a successful user creation, otherwise raises and error"""
     return db.put({'date': dat, 'client': cli, 'address': add, 'category': cat, 'description': des,'payment': pay})
 
-def fetch_all_dates():
+def fetch_all_jobs():
     """Returns a dict of all date"""
     res = db.fetch()
+    return res.items
+
+# Setting for utility database
+uti = ['uti']
+dat2 = ['dat2']
+exps = ['Cost']
+usa = ['Usage']
+
+# Utility Database Interface
+DETA_KEY = 'c0jo61nr_Fk3geHfjZYDv53FuxFYaEPjhitTawRVz'              # Key Name: b993nq, Key Description: Project Key: b993nq, Project Key: c0jo61nr_Fk3geHfjZYDv53FuxFYaEPjhitTawRVz
+deta = Deta(DETA_KEY)
+db2 = deta.Base('utility_db')
+
+def insert_util(uti, dat2, exps, usa):
+    """Returns the user on a successful user creation, otherwise raises and error"""
+    return db2.put({'utility': uti, 'date': dat2, 'expense': exps, 'usage': usa,})
+
+def fetch_all_utils():
+    """Returns a dict of all date"""
+    res = db2.fetch()
     return res.items
 
 # User Password Database
@@ -73,101 +94,172 @@ if authentication_status:
     st.sidebar.subheader(f"User ID: {username}")
     st.sidebar.subheader(f"User Name: {name}")
 
-    selected = option_menu(menu_title = None, options = ['Dashboard','Job Sheet'], orientation='horizontal')
+    selected = option_menu(menu_title = None, options = ['Dashboard','Job Sheet','Utility Form','Body Mass Index'], orientation='horizontal')
 
+    # Creating Job Sheet Table Dataframe
+    df = fetch_all_jobs()
+    df = json.dumps(df)
+    df = pd.read_json(df)
+    # Creating new columns
+    address_1 = df['address'].map(Counter).groupby(df['key']).sum()
+    address_1 = df['address'].apply(lambda x: x.get('add')).dropna()
+    category_1 = df['category'].map(Counter).groupby(df['key']).sum()
+    category_1 = df['category'].apply(lambda x: x.get('cat')).dropna()
+    client_1 = df['client'].map(Counter).groupby(df['key']).sum()
+    client_1 = df['client'].apply(lambda x: x.get('cli')).dropna()
+    date_1 = df['date'].map(Counter).groupby(df['key']).sum()
+    date_1 = df['date'].apply(lambda x: x.get('dat')).dropna()
+    description_1 = df['description'].map(Counter).groupby(df['key']).sum()
+    description_1 = df['description'].apply(lambda x: x.get('des')).dropna()
+    payment_1 = df['payment'].map(Counter).groupby(df['key']).sum()
+    payment_1 = df['payment'].apply(lambda x: x.get('Fees')).dropna()
+    # Combined all new columns
+    df_new = pd.merge(address_1, category_1, left_index=True, right_index=True)
+    df_new = pd.merge(df_new, client_1, left_index=True, right_index=True)
+    df_new = pd.merge(df_new, date_1, left_index=True, right_index=True)
+    df_new = pd.merge(df_new, description_1, left_index=True, right_index=True)
+    df_new = pd.merge(df_new, payment_1, left_index=True, right_index=True)
+    df_new['payment'] = df_new['payment'].map('RM{:,.2f}'.format)
+    df_new['date'] = pd.to_datetime(df_new['date'])
+    df_new = df_new.sort_values(by='date')
+    df_new['date'] = df_new['date'].astype(str).str.replace('T','-', regex=True)
+    # -----
+    clients = pd.merge(client_1, payment_1, left_index=True, right_index=True)
+    clients = clients.groupby('client').sum()
+    clients['payment'] = clients['payment'].map('RM{:,.2f}'.format)
+    # ----
+    df = pd.merge(df, date_1, left_index=True, right_index=True)
+    df['date_y'] = pd.to_datetime(df['date_y'])
+    # Creating yearly table
+    # 2020
+    df_2020 = df[(df['date_y'] >= "2020-01-01") & (df['date_y'] <="2020-12-01")]
+    df_2020 = df_2020.sort_values(by='date_y')
+    # 2021
+    df_2021 = df[(df['date_y'] >= "2021-01-01") & (df['date_y'] <="2021-12-01")]
+    df_2021 = df_2021.sort_values(by='date_y')
+    # 2022
+    df_2022 = df[(df['date_y'] >= "2022-01-01") & (df['date_y'] <="2022-12-01")]
+    df_2022 = df_2022.sort_values(by='date_y')
+    # ----
+    fees_total = df['payment'].map(Counter).groupby(df['key']).sum()
+    fees_total = df['payment'].apply(lambda x: x.get('Fees')).dropna()
+    fees_2020 = df_2020['payment'].map(Counter).groupby(df_2020['key']).sum()
+    fees_2020 = df_2020['payment'].apply(lambda x: x.get('Fees')).dropna()
+    fees_2021 = df_2021['payment'].map(Counter).groupby(df_2021['key']).sum()
+    fees_2021 = df_2021['payment'].apply(lambda x: x.get('Fees')).dropna()
+    fees_2022 = df_2022['payment'].map(Counter).groupby(df_2022['key']).sum()
+    fees_2022 = df_2022['payment'].apply(lambda x: x.get('Fees')).dropna()
+    # Creating Utility Table Dataframe
+    df2 = fetch_all_utils()
+    df2 = json.dumps(df2)
+    df2 = pd.read_json(df2)
+    # Creating new columns
+    expense_1 = df2['expense'].map(Counter).groupby(df['key']).sum()
+    expense_1 = df2['expense'].apply(lambda x: x.get('Cost')).dropna()
+    usage_1 = df2['usage'].map(Counter).groupby(df['key']).sum()
+    usage_1 = df2['usage'].apply(lambda x: x.get('Usage')).dropna()
+    utility_1 = df2['utility'].map(Counter).groupby(df['key']).sum()
+    utility_1 = df2['utility'].apply(lambda x: x.get('uti')).dropna()
+    date_2 = df2['date'].map(Counter).groupby(df['key']).sum()
+    date_2 = df2['date'].apply(lambda x: x.get('dat2')).dropna()
+    # Combined all new columns
+    df2_new = pd.merge(date_2, utility_1, left_index=True, right_index=True)
+    df2_new = pd.merge(df2_new, expense_1, left_index=True, right_index=True)
+    df2_new = pd.merge(df2_new, usage_1, left_index=True, right_index=True)
+    df2_new['date'] = pd.to_datetime(df2_new['date'])
+    df2_new = df2_new.sort_values(by='date')
+    df2_new['date'] = df2_new['date'].astype(str).str.replace('T','-', regex=True)
+    # Creating Utility Tables
+    df_TNB = df2_new[(df2_new['utility'] == 'TNB')]
+    df_AIR = df2_new[(df2_new['utility'] == 'Air Selangor')]
+    df_DIGI = df2_new[(df2_new['utility'] == 'DiGi')]
+    df_TM = df2_new[(df2_new['utility'] == 'TM')]
+    df_IWK = df2_new[(df2_new['utility'] == 'IWK')]
+    # ----
+    total_tnb = df_TNB['expense'].sum()
+    total_kwh = df_TNB['usage'].sum()
+    total_air = df_AIR['expense'].sum()
+    total_m3 = df_AIR['usage'].sum()
+    total_digi = df_DIGI['expense'].sum()
+    total_tm = df_TM['expense'].sum()
+    total_iwk = df_IWK['expense'].sum()
+    
     if selected == 'Dashboard':
-        st.subheader('Job Sheet Summary:')
-        df = fetch_all_dates()
-        df = json.dumps(df)
-        df = pd.read_json(df)
-        # Creating new columns
-        address_1 = df['address'].map(Counter).groupby(df['key']).sum()
-        address_1 = df['address'].apply(lambda x: x.get('add')).dropna()
-        category_1 = df['category'].map(Counter).groupby(df['key']).sum()
-        category_1 = df['category'].apply(lambda x: x.get('cat')).dropna()
-        client_1 = df['client'].map(Counter).groupby(df['key']).sum()
-        client_1 = df['client'].apply(lambda x: x.get('cli')).dropna()
-        date_1 = df['date'].map(Counter).groupby(df['key']).sum()
-        date_1 = df['date'].apply(lambda x: x.get('dat')).dropna()
-        description_1 = df['description'].map(Counter).groupby(df['key']).sum()
-        description_1 = df['description'].apply(lambda x: x.get('des')).dropna()
-        payment_1 = df['payment'].map(Counter).groupby(df['key']).sum()
-        payment_1 = df['payment'].apply(lambda x: x.get('Fees')).dropna()
-        # Combined all new columns
-        df_new = pd.merge(address_1, category_1, left_index=True, right_index=True)
-        df_new = pd.merge(df_new, client_1, left_index=True, right_index=True)
-        df_new = pd.merge(df_new, date_1, left_index=True, right_index=True)
-        df_new = pd.merge(df_new, description_1, left_index=True, right_index=True)
-        df_new = pd.merge(df_new, payment_1, left_index=True, right_index=True)
-        df_new['payment'] = df_new['payment'].map('RM{:,.2f}'.format)
-        df_new['date'] = pd.to_datetime(df_new['date'])
-        df_new = df_new.sort_values(by='date')
-        df_new['date'] = df_new['date'].astype(str).str.replace('T','-', regex=True)
-
-        clients = pd.merge(client_1, payment_1, left_index=True, right_index=True)
-        clients = clients.groupby('client').sum()
-        clients['payment'] = clients['payment'].map('RM{:,.2f}'.format)
-
-        df = pd.merge(df, date_1, left_index=True, right_index=True)
-        df['date_y'] = pd.to_datetime(df['date_y'])
-        # Creating yearly table
-        # 2020
-        df_2020 = df[(df['date_y'] >= "2020-01-01") & (df['date_y'] <="2020-12-01")]
-        df_2020 = df_2020.sort_values(by='date_y')
-        # 2021
-        df_2021 = df[(df['date_y'] >= "2021-01-01") & (df['date_y'] <="2021-12-01")]
-        df_2021 = df_2021.sort_values(by='date_y')
-        # 2022
-        df_2022 = df[(df['date_y'] >= "2022-01-01") & (df['date_y'] <="2022-12-01")]
-        df_2022 = df_2022.sort_values(by='date_y')
-        
-        fees_total = df['payment'].map(Counter).groupby(df['key']).sum()
-        fees_total = df['payment'].apply(lambda x: x.get('Fees')).dropna()
-        fees_2020 = df_2020['payment'].map(Counter).groupby(df_2020['key']).sum()
-        fees_2020 = df_2020['payment'].apply(lambda x: x.get('Fees')).dropna()
-        fees_2021 = df_2021['payment'].map(Counter).groupby(df_2021['key']).sum()
-        fees_2021 = df_2021['payment'].apply(lambda x: x.get('Fees')).dropna()
-        fees_2022 = df_2022['payment'].map(Counter).groupby(df_2022['key']).sum()
-        fees_2022 = df_2022['payment'].apply(lambda x: x.get('Fees')).dropna()
-
-        col1, col2, col3, col4 = st.columns(4)
-        with col1:
-            st.subheader('Year 2020')
-            col1.metric('Payment:', f'RM{fees_2020.sum():,.2f}')
-            col1.metric('Jobs:', fees_2020.__len__())
-        with col2:
-            st.subheader('Year 2021')
-            col2.metric('Payment:', f'RM{fees_2021.sum():,.2f}')
-            col2.metric('Jobs:', fees_2021.__len__())
-        with col3:
-            st.subheader('Year 2022')
-            col3.metric('Payment:', f'RM{fees_2022.sum():,.2f}')
-            col3.metric('Jobs:', fees_2022.__len__())
-        with col4:
-            st.subheader('Total')
-            col4.metric('Payment:', f'RM{fees_total.sum():,.2f}')
-            col4.metric('Jobs:', fees_total.__len__())
-        
-        # Graph
-        fig_bar = make_subplots(shared_xaxes=True, specs=[[{'secondary_y': True}]])
-        fig_bar.add_trace(go.Bar(x = ['2020','2021','2022'], y = [fees_2020.sum(),fees_2021.sum(),fees_2022.sum()],name='RM', 
-            text=[fees_2020.sum(),fees_2021.sum(),fees_2022.sum()]))
-        fig_bar.update_traces(texttemplate='%{text:.2f}', textposition='auto')
-        fig_bar.update_layout(title_text='Annual Fees (RM)',title_x=0.5, height=350, font=dict(family="Helvetica", size=10),
-                            xaxis=dict(tickmode="array"),plot_bgcolor="rgba(0,0,0,0)",yaxis=(dict(showgrid=False)),yaxis_title=None,showlegend=False)
-        fig_bar.update_annotations(font=dict(family="Helvetica", size=10))
-        fig_bar.update_xaxes(title_text='', showgrid=False, zeroline=False, showline=True, linewidth=2, linecolor='black')
-        fig_bar.update_yaxes(showgrid=False, zeroline=False, showline=True, linewidth=2, linecolor='black')
-        # PIE CHART Cost
-        fig_pie = make_subplots(specs=[[{"type": "domain"}]])
-        fig_pie.add_trace(go.Pie(values=[fees_2020.sum(),fees_2021.sum(),fees_2022.sum()],labels=['2020','2021','2022'],textposition='inside',
-                        textinfo='label+percent'),row=1, col=1)
-        fig_pie.update_annotations(font=dict(family="Helvetica", size=10))
-        fig_pie.update_layout(height=350,showlegend=False,title_text='Annual Fees (%)',title_x=0.5,font=dict(family="Helvetica", size=10))            
-        # Chart Presentation
+        st.header('Overview:')
+        st.subheader('Utility')
+        col1, col2, col3, col4, col5 = st.columns(5)
+        col1.metric('TNB', f'RM{total_tnb:,.2f}')
+        col1.metric('kWh', f'{total_kwh}')
+        col2.metric('Air Selangor', f'RM{total_air:,.2f}')
+        col2.metric('m3', f'{total_m3}')
+        col3.metric('Digi', f'RM{total_digi:,.2f}')
+        col3.metric('TNB Rate', f'RM{(total_tnb/total_kwh):,.2f}/kWh')
+        col4.metric('TM', f'RM{total_tm:,.2f}')
+        col4.metric('Air Selangor Rate', f'RM{(total_air/total_m3):,.2f}/m3')
+        col5.metric('IWK', f'RM{total_iwk:,.2f}')
+        col5.metric('Total Utility Cost', f'RM{(total_tnb+total_air+total_tm+total_digi+total_iwk):,.2f}')
+        st.subheader('Job Sheet')
         col1, col2 = st.columns(2)
-        col1.plotly_chart(fig_bar, use_container_width=True)
-        col2.plotly_chart(fig_pie, use_container_width=True)
+        col1.metric('Total Payment:', f'RM{fees_total.sum():,.2f}')
+        col2.metric('Total Jobs:', fees_total.__len__())
+        
+        with st.expander('Utility Dataframe:'):
+            
+            fig_table_tnb = go.Figure(data=[go.Table(columnwidth=[1,1,1,1], header=dict(values=list(df_TNB.columns),fill_color='paleturquoise',align='center'),
+                                cells=dict(values=[df_TNB.date, df_TNB.utility, df_TNB.expense, df_TNB.usage],fill_color='lavender',align='left'))])
+            fig_table_tnb.update_layout(margin=dict(t=5,b=5,l=5,r=5))
+            st.plotly_chart(fig_table_tnb, use_container_width=True)
+
+            fig_table_air = go.Figure(data=[go.Table(columnwidth=[1,1,1,1], header=dict(values=list(df_AIR.columns),fill_color='paleturquoise',align='center'),
+                                cells=dict(values=[df_AIR.date, df_AIR.utility, df_AIR.expense, df_AIR.usage],fill_color='lavender',align='left'))])
+            fig_table_air.update_layout(margin=dict(t=5,b=5,l=5,r=5))
+            st.plotly_chart(fig_table_air, use_container_width=True)
+
+            fig_table_digi = go.Figure(data=[go.Table(columnwidth=[1,1,1,1], header=dict(values=list(df_DIGI.columns),fill_color='paleturquoise',align='center'),
+                                cells=dict(values=[df_DIGI.date, df_DIGI.utility, df_DIGI.expense],fill_color='lavender',align='left'))])
+            fig_table_digi.update_layout(margin=dict(t=5,b=5,l=5,r=5))
+            st.plotly_chart(fig_table_digi, use_container_width=True)
+
+            fig_table_tm = go.Figure(data=[go.Table(columnwidth=[1,1,1,1], header=dict(values=list(df_TM.columns),fill_color='paleturquoise',align='center'),
+                                cells=dict(values=[df_TM.date, df_TM.utility, df_TM.expense],fill_color='lavender',align='left'))])
+            fig_table_tm.update_layout(margin=dict(t=5,b=5,l=5,r=5))
+            st.plotly_chart(fig_table_tm, use_container_width=True)
+
+        with st.expander('Job Sheet Summary:'):
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                st.subheader('Year 2020')
+                col1.metric('Payment:', f'RM{fees_2020.sum():,.2f}')
+                col1.metric('Jobs:', fees_2020.__len__())
+            with col2:
+                st.subheader('Year 2021')
+                col2.metric('Payment:', f'RM{fees_2021.sum():,.2f}')
+                col2.metric('Jobs:', fees_2021.__len__())
+            with col3:
+                st.subheader('Year 2022')
+                col3.metric('Payment:', f'RM{fees_2022.sum():,.2f}')
+                col3.metric('Jobs:', fees_2022.__len__())
+                
+            # Graph
+            fig_bar = make_subplots(shared_xaxes=True, specs=[[{'secondary_y': True}]])
+            fig_bar.add_trace(go.Bar(x = ['2020','2021','2022'], y = [fees_2020.sum(),fees_2021.sum(),fees_2022.sum()],name='RM', 
+                text=[fees_2020.sum(),fees_2021.sum(),fees_2022.sum()]))
+            fig_bar.update_traces(texttemplate='%{text:.2f}', textposition='auto')
+            fig_bar.update_layout(title_text='Annual Fees (RM)',title_x=0.5, height=350, font=dict(family="Helvetica", size=10),
+                                xaxis=dict(tickmode="array"),plot_bgcolor="rgba(0,0,0,0)",yaxis=(dict(showgrid=False)),yaxis_title=None,showlegend=False)
+            fig_bar.update_annotations(font=dict(family="Helvetica", size=10))
+            fig_bar.update_xaxes(title_text='', showgrid=False, zeroline=False, showline=True, linewidth=2, linecolor='black')
+            fig_bar.update_yaxes(showgrid=False, zeroline=False, showline=True, linewidth=2, linecolor='black')
+            # PIE CHART Cost
+            fig_pie = make_subplots(specs=[[{"type": "domain"}]])
+            fig_pie.add_trace(go.Pie(values=[fees_2020.sum(),fees_2021.sum(),fees_2022.sum()],labels=['2020','2021','2022'],textposition='inside',
+                            textinfo='label+percent'),row=1, col=1)
+            fig_pie.update_annotations(font=dict(family="Helvetica", size=10))
+            fig_pie.update_layout(height=350,showlegend=False,title_text='Annual Fees (%)',title_x=0.5,font=dict(family="Helvetica", size=10))            
+            # Chart Presentation
+            col1, col2 = st.columns(2)
+            col1.plotly_chart(fig_bar, use_container_width=True)
+            col2.plotly_chart(fig_pie, use_container_width=True)
 
         with st.expander('List Of Clients:'):
             clients = clients.reset_index()    
@@ -217,8 +309,139 @@ if authentication_status:
                 des = {description: st.session_state[description] for description in des}
                 pay = {payment: st.session_state[payment] for payment in pay}
                 dat = {date: st.session_state[date] for date in dat}
-                insert_date(dat, cli, add, cat, des, pay)
+                insert_job(dat, cli, add, cat, des, pay)
                 st.success('Data saved!')
+    
+    if selected == 'Utility Form':
+        st.header('Utility Expenses Form')
+        with st.form('entry_form', clear_on_submit=True):
+            col1, col2 = st.columns(2)
+            with col1:
+                for utility in uti:
+                    st.selectbox('Utility Provider:',('TNB','Air Selangor','TM','DiGi','IWK') , key=utility)
+                for date2 in dat2:
+                    st.text_input('Date:', placeholder='Date format in mm/dd/yy',key=date2)
+            with col2:
+                for expense in exps:
+                    st.number_input(f"{expense}:", min_value=0.0, max_value=10000.0, step=1e-3, format="%.2f", key=expense)
+                for usage in usa:
+                    st.number_input(f"{usage}:", min_value=0.0, max_value=10000.0, step=1e-3, format="%.0f", key=usage)
+
+            submitted = st.form_submit_button('Submit')
+            if submitted:
+                uti = {utility: st.session_state[utility] for utility in uti}
+                dat2 = {date2: st.session_state[date2] for date2 in dat2}
+                exps = {expense: st.session_state[expense] for expense in exps}
+                usa = {usage: st.session_state[usage] for usage in usa}
+                insert_util(uti,dat2,exps,usa)
+                st.success('Data saved!')
+
+    if selected == 'Body Mass Index':
+        outside_expander_area = st.container()
+        state = st.session_state
+        if 'WEIGHT' not in state:
+            state.WEIGHT = 52.0
+        if 'HEIGHT' not in state:
+            state.HEIGHT = 1.65
+
+        def _set_values_cb():
+            state.WEIGHT = state['weight']
+            state.HEIGHT = state['height']
+
+        with outside_expander_area:
+            c1, c2 = st.columns([1,1])
+            with c1:
+                guage = st.empty()
+            with c2:
+                state.WEIGHT = st.number_input('Enter weight (kg)', min_value=50.0, max_value=150.0, value=state.WEIGHT, step=0.5, on_change=_set_values_cb, key='weight')
+                state.HEIGHT = st.number_input('Enter height (m)', min_value=1.0, max_value=2.5, value=state.HEIGHT, step=0.1, on_change=_set_values_cb, key='height')
+
+        BMI = round(state.WEIGHT/(state.HEIGHT**2), 1)
+
+        bmi_thresholds = [13, 18.5, 25, 30, 43]
+        level_labels = ['Severe Underweight', 'Underweight','Normal','Overweight','Obesity', 'Severe Obesity']
+
+        if BMI <= bmi_thresholds[0]:
+            level = level_labels[0]
+        elif BMI <= bmi_thresholds[1]:
+            level = level_labels[1]
+        elif BMI <= bmi_thresholds[2]:
+            level = level_labels[2]
+        elif BMI <= bmi_thresholds[3]:
+            level = level_labels[3]
+        elif BMI <= bmi_thresholds[4]:
+            level = level_labels[4]
+        else:
+            level = level_labels[5]
+
+        bmi_gauge_lower = 13 # 0 degrees
+        bmi_gauge_upper = 43 # 180 degrees
+
+        bmi_guage_range = (bmi_gauge_upper - bmi_gauge_lower)
+        BMI_adjusted = BMI if (BMI >= bmi_gauge_lower and BMI <= bmi_gauge_upper) else (
+            bmi_gauge_lower if BMI < bmi_gauge_lower else bmi_gauge_upper
+        )
+        dial_rotation = round(((BMI_adjusted - bmi_gauge_lower) / bmi_guage_range) * 180.0, 1)
+
+        html = f"""
+        <html><body>
+        <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="300px" height="163px" viewBox="0 0 300 163">
+        <g transform="translate(18,18)" style="font-family:arial,helvetica,sans-serif;font-size: 12px;">
+            <defs>
+                <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+                    <polygon points="0 0, 10 3.5, 0 7"></polygon>
+                </marker>
+                <path id="curvetxt1" d="M-4 140 A140 140, 0, 0, 1, 284 140" style="fill: none;"></path>
+                <path id="curvetxt2" d="M33 43.6 A140 140, 0, 0, 1, 280 140" style="fill: #none;"></path>
+                <path id="curvetxt3" d="M95 3 A140 140, 0, 0, 1, 284 140" style="fill: #none;"></path>
+                <path id="curvetxt4" d="M235.4 33 A140 140, 0, 0, 1, 284 140" style="fill: #none;"></path>
+            </defs>
+            <path d="M0 140 A140 140, 0, 0, 1, 280 140 L140 140 Z" fill="#bc2020"></path>
+            <path d="M6.9 96.7 A140 140, 0, 0, 1, 280 140 L140 140 Z" fill="#d38888"></path>
+            <path d="M12.1 83.1 A140 140, 0, 0, 1, 280 140 L140 140 Z" fill="#ffe400"></path>
+            <path d="M22.6 63.8 A140 140, 0, 0, 1, 96.7 6.9 L140 140 Z" fill="#008137"></path>
+            <path d="M96.7 6.9 A140 140, 0, 0, 1, 280 140 L140 140 Z" fill="#ffe400"></path>
+            <path d="M169.1 3.1 A140 140, 0, 0, 1, 280 140 L140 140 Z" fill="#d38888"></path>
+            <path d="M233.7 36 A140 140, 0, 0, 1, 280 140 L140 140 Z" fill="#bc2020"></path>
+            <path d="M273.1 96.7 A140 140, 0, 0, 1, 280 140 L140 140 Z" fill="#8a0101"></path>
+            <path d="M45 140 A90 90, 0, 0, 1, 230 140 Z" fill="#fff"></path>
+            <circle cx="140" cy="140" r="5" fill="#666"></circle>
+
+            <g style="paint-order: stroke;stroke: #fff;stroke-width: 2px;">
+                <text x="25" y="111" transform="rotate(-72, 25, 111)">16</text>
+                <text x="30" y="96" transform="rotate(-66, 30, 96)">17</text>
+                <text x="35" y="83" transform="rotate(-57, 35, 83)">18.5</text>
+                <text x="97" y="29" transform="rotate(-18, 97, 29)">25</text>
+                <text x="157" y="20" transform="rotate(12, 157, 20)">30</text>
+                <text x="214" y="45" transform="rotate(42, 214, 45)">35</text>
+                <text x="252" y="95" transform="rotate(72, 252, 95)">40</text>
+            </g>
+
+            <g style="font-size: 14px;">
+                <text><textPath xlink:href="#curvetxt1">Underweight</textPath></text>
+                <text><textPath xlink:href="#curvetxt2">Normal</textPath></text>
+                <text><textPath xlink:href="#curvetxt3">Overweight</textPath></text>
+                <text><textPath xlink:href="#curvetxt4">Obesity</textPath></text>
+            </g>
+
+            <line x1="140" y1="140" x2="65" y2="140" stroke="#666" stroke-width="2" marker-end="url(#arrowhead)">
+                <animateTransform attributeName="transform" attributeType="XML" type="rotate" from="0 140 140" to="{dial_rotation} 140 140" dur="1s" fill="freeze" repeatCount="1"></animateTransform>
+            </line>
+
+            <text x="67" y="120" style="font-size: 30px;font-weight:bold;color:#000;">BMI = {BMI}</text>
+        </g>
+        </svg>
+        </body></html>
+        """
+
+        with outside_expander_area:
+            import streamlit.components.v1 as components
+
+            with guage:
+                components.html(html.replace('\n',''))
+
+            st.subheader(f'BMI level is {level} ({BMI})')
+            # st.caption(f'Rotation: {dial_rotation} degrees')
 
 # --- HIDE STREAMLIT STYLE ---
 
