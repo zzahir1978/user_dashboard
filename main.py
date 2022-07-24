@@ -55,9 +55,9 @@ DETA_KEY = 'c0jo61nr_Fk3geHfjZYDv53FuxFYaEPjhitTawRVz'              # Key Name: 
 deta = Deta(DETA_KEY)
 db2 = deta.Base('utility_db')
 
-def insert_util(uti, dat2, exps, usa):
+def insert_util(uti, dat2, exps, usa, comment):
     """Returns the user on a successful user creation, otherwise raises and error"""
-    return db2.put({'utility': uti, 'date': dat2, 'expense': exps, 'usage': usa,})
+    return db2.put({'utility': uti, 'date': dat2, 'expense': exps, 'usage': usa, 'comment': comment})
 
 def fetch_all_utils():
     """Returns a dict of all date"""
@@ -203,25 +203,79 @@ if authentication_status:
         col1.metric('Total Payment:', f'RM{fees_total.sum():,.2f}')
         col2.metric('Total Jobs:', fees_total.__len__())
         
-        with st.expander('Utility Dataframe:'):
-            
+        with st.expander('TNB Dataframe:'):
+            # Graph
+            fig_tnb = make_subplots(shared_xaxes=True, specs=[[{'secondary_y': True}]])
+            fig_tnb.add_trace(go.Bar(x = df_TNB['date'], y = df_TNB['expense'],name='RM'))
+            fig_tnb.add_trace(go.Scatter(x = df_TNB['date'], y = df_TNB['usage'],name='kWh',
+                fill='tozeroy',mode='lines',line = dict(color='red', width=1)), secondary_y=True)
+            fig_tnb.add_trace(go.Scatter(x = df_TNB['date'], y = df_TNB['usage'],name='kWh',
+                mode='lines',line = dict(color='black', width=2)), secondary_y=True)
+            fig_tnb.update_layout(height=350,title_text='Annual Electricity Consumption (RM VS kWh)',title_x=0.5,
+                font=dict(family="Helvetica", size=10),xaxis=dict(tickmode="array"),plot_bgcolor="rgba(0,0,0,0)",
+                yaxis=(dict(showgrid=False)),yaxis_title=None,showlegend=False)
+            fig_tnb.update_annotations(font=dict(family="Helvetica", size=10))
+            fig_tnb.update_xaxes(title_text='Month', showgrid=False, zeroline=False, showline=True, linewidth=2, linecolor='black')
+            fig_tnb.update_yaxes(showgrid=False, zeroline=False, showline=True, linewidth=2, linecolor='black')
+            st.plotly_chart(fig_tnb, use_container_width=True)
+            # Table
             fig_table_tnb = go.Figure(data=[go.Table(columnwidth=[1,1,1,1], header=dict(values=list(df_TNB.columns),fill_color='paleturquoise',align='center'),
-                                cells=dict(values=[df_TNB.date, df_TNB.utility, df_TNB.expense, df_TNB.usage],fill_color='lavender',align='left'))])
+                                cells=dict(values=[df_TNB.date, df_TNB.utility, df_TNB.expense, df_TNB.usage],fill_color='lavender',align='center'))])
             fig_table_tnb.update_layout(margin=dict(t=5,b=5,l=5,r=5))
             st.plotly_chart(fig_table_tnb, use_container_width=True)
-
+        
+        with st.expander('Air Selangor Dataframe'):
+            # Graph
+            fig_air = make_subplots(shared_xaxes=True, specs=[[{'secondary_y': True}]])
+            fig_air.add_trace(go.Bar(x = df_AIR['date'], y = df_AIR['expense'],name='RM'))
+            fig_air.add_trace(go.Scatter(x = df_AIR['date'], y = df_AIR['usage'],name='m3',
+                fill='tozeroy',mode='lines',line = dict(color='red', width=1)), secondary_y=True)
+            fig_air.add_trace(go.Scatter(x = df_AIR['date'], y = df_AIR['usage'],name='m3',
+                mode='lines',line = dict(color='black', width=2)), secondary_y=True)
+            fig_air.update_layout(height=350,title_text='Annual Water Consumption (RM VS m3)',title_x=0.5,
+                font=dict(family="Helvetica", size=10),xaxis=dict(tickmode="array"),plot_bgcolor="rgba(0,0,0,0)",
+                yaxis=(dict(showgrid=False)),yaxis_title=None,showlegend=False)
+            fig_air.update_annotations(font=dict(family="Helvetica", size=10))
+            fig_air.update_xaxes(title_text='Month', showgrid=False, zeroline=False, showline=True, linewidth=2, linecolor='black')
+            fig_air.update_yaxes(showgrid=False, zeroline=False, showline=True, linewidth=2, linecolor='black')
+            st.plotly_chart(fig_air, use_container_width=True)
+            # Table
             fig_table_air = go.Figure(data=[go.Table(columnwidth=[1,1,1,1], header=dict(values=list(df_AIR.columns),fill_color='paleturquoise',align='center'),
-                                cells=dict(values=[df_AIR.date, df_AIR.utility, df_AIR.expense, df_AIR.usage],fill_color='lavender',align='left'))])
+                                cells=dict(values=[df_AIR.date, df_AIR.utility, df_AIR.expense, df_AIR.usage],fill_color='lavender',align='center'))])
             fig_table_air.update_layout(margin=dict(t=5,b=5,l=5,r=5))
             st.plotly_chart(fig_table_air, use_container_width=True)
 
+        with st.expander('DiGi Dataframe'):
+            # Graph
+            fig_digi = make_subplots(shared_xaxes=True, specs=[[{'secondary_y': True}]])
+            fig_digi.add_trace(go.Bar(x = df_DIGI['date'], y = df_DIGI['expense'],name='RM'))
+            fig_digi.update_layout(height=350,title_text='Annual DiGi Consumption (RM)',title_x=0.5,
+                font=dict(family="Helvetica", size=10),xaxis=dict(tickmode="array"),plot_bgcolor="rgba(0,0,0,0)",
+                yaxis=(dict(showgrid=False)),yaxis_title=None,showlegend=False)
+            fig_digi.update_annotations(font=dict(family="Helvetica", size=10))
+            fig_digi.update_xaxes(title_text='Month', showgrid=False, zeroline=False, showline=True, linewidth=2, linecolor='black')
+            fig_digi.update_yaxes(showgrid=False, zeroline=False, showline=True, linewidth=2, linecolor='black')
+            st.plotly_chart(fig_digi, use_container_width=True)
+            # Table
             fig_table_digi = go.Figure(data=[go.Table(columnwidth=[1,1,1,1], header=dict(values=list(df_DIGI.columns),fill_color='paleturquoise',align='center'),
-                                cells=dict(values=[df_DIGI.date, df_DIGI.utility, df_DIGI.expense],fill_color='lavender',align='left'))])
+                                cells=dict(values=[df_DIGI.date, df_DIGI.utility, df_DIGI.expense, df_DIGI.usage],fill_color='lavender',align='center'))])
             fig_table_digi.update_layout(margin=dict(t=5,b=5,l=5,r=5))
             st.plotly_chart(fig_table_digi, use_container_width=True)
 
+        with st.expander('TM Dataframe'):
+            # Graph
+            fig_tm = make_subplots(shared_xaxes=True, specs=[[{'secondary_y': True}]])
+            fig_tm.add_trace(go.Bar(x = df_TM['date'], y = df_TM['expense'],name='RM'))
+            fig_tm.update_layout(height=350,title_text='Annual TM Consumption (RM)',title_x=0.5,
+                font=dict(family="Helvetica", size=10),xaxis=dict(tickmode="array"),plot_bgcolor="rgba(0,0,0,0)",
+                yaxis=(dict(showgrid=False)),yaxis_title=None,showlegend=False)
+            fig_tm.update_annotations(font=dict(family="Helvetica", size=10))
+            fig_tm.update_xaxes(title_text='Month', showgrid=False, zeroline=False, showline=True, linewidth=2, linecolor='black')
+            fig_tm.update_yaxes(showgrid=False, zeroline=False, showline=True, linewidth=2, linecolor='black')
+            st.plotly_chart(fig_tm, use_container_width=True)
+            # Table
             fig_table_tm = go.Figure(data=[go.Table(columnwidth=[1,1,1,1], header=dict(values=list(df_TM.columns),fill_color='paleturquoise',align='center'),
-                                cells=dict(values=[df_TM.date, df_TM.utility, df_TM.expense],fill_color='lavender',align='left'))])
+                                cells=dict(values=[df_TM.date, df_TM.utility, df_TM.expense, df_TM.usage],fill_color='lavender',align='center'))])
             fig_table_tm.update_layout(margin=dict(t=5,b=5,l=5,r=5))
             st.plotly_chart(fig_table_tm, use_container_width=True)
 
@@ -268,14 +322,13 @@ if authentication_status:
             fig_table_client.update_layout(margin=dict(t=5,b=5,l=5,r=5))
             st.plotly_chart(fig_table_client, use_container_width=True)
             #st.dataframe(clients.reset_index())
-        with st.expander('Dataframe:'):
+        with st.expander('Job Sheet Dataframe:'):
             fig_table_dataframe = go.Figure(
                 data=[go.Table(columnwidth=[1,1,1,1,2,1],header=dict(values=list(df_new.columns),fill_color='paleturquoise',align='center'),
                 cells=dict(values=[df_new.address, df_new.category, df_new.client, df_new.date, df_new.description, df_new.payment],
                 fill_color='lavender',align='left'))])
             fig_table_dataframe.update_layout(margin=dict(t=5,b=5,l=5,r=5))
             st.plotly_chart(fig_table_dataframe, use_container_width=True)
-            #st.dataframe(df_new)
 
     if selected == 'Job Sheet':
         st.header('Job Sheet Form')
@@ -326,6 +379,8 @@ if authentication_status:
                     st.number_input(f"{expense}:", min_value=0.0, max_value=10000.0, step=1e-3, format="%.2f", key=expense)
                 for usage in usa:
                     st.number_input(f"{usage}:", min_value=0.0, max_value=10000.0, step=1e-3, format="%.0f", key=usage)
+            
+            comment = st.text_area('Remarks:', placeholder='Enter a comment here...')
 
             submitted = st.form_submit_button('Submit')
             if submitted:
@@ -333,7 +388,7 @@ if authentication_status:
                 dat2 = {date2: st.session_state[date2] for date2 in dat2}
                 exps = {expense: st.session_state[expense] for expense in exps}
                 usa = {usage: st.session_state[usage] for usage in usa}
-                insert_util(uti,dat2,exps,usa)
+                insert_util(uti,dat2,exps,usa,comment)
                 st.success('Data saved!')
 
     if selected == 'Body Mass Index':
