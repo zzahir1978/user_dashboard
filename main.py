@@ -177,31 +177,52 @@ if authentication_status:
     df_IWK = df2_new[(df2_new['utility'] == 'IWK')]
     # ----
     total_tnb = df_TNB['expense'].sum()
+    bill_tnb = df_TNB['expense'].__len__()
     total_kwh = df_TNB['usage'].sum()
     total_air = df_AIR['expense'].sum()
+    bill_air = df_AIR['expense'].__len__()
     total_m3 = df_AIR['usage'].sum()
     total_digi = df_DIGI['expense'].sum()
+    bill_digi = df_DIGI['expense'].__len__()
     total_tm = df_TM['expense'].sum()
+    bill_tm = df_TM['expense'].__len__()
     total_iwk = df_IWK['expense'].sum()
+    bill_iwk = df_IWK['expense'].__len__()
     
     if selected == 'Dashboard':
-        st.header('Overview:')
+        st.header('Summary:')
         st.subheader('Utility')
         col1, col2, col3, col4, col5 = st.columns(5)
         col1.metric('TNB', f'RM{total_tnb:,.2f}')
+        col1.metric('No. Of Bills', f'{bill_tnb}')
+        col1.metric('Average Cost', f'RM{(total_tnb/bill_tnb):,.2f}')
         col1.metric('kWh', f'{total_kwh:,.0f}')
+        # ----
         col2.metric('Air Selangor', f'RM{total_air:,.2f}')
+        col2.metric('No. Of Bills', f'{bill_air}')
+        col2.metric('Average Cost', f'RM{(total_air/bill_air):,.2f}')
         col2.metric('m3', f'{total_m3:,.0f}')
+        # ----
         col3.metric('Digi', f'RM{total_digi:,.2f}')
+        col3.metric('No. Of Bills', f'{bill_digi}')
+        col3.metric('Average Cost', f'RM{(total_digi/bill_digi):,.2f}')
         col3.metric('TNB Rate', f'RM{(total_tnb/total_kwh):,.2f}/kWh')
+        # ----
         col4.metric('TM', f'RM{total_tm:,.2f}')
+        col4.metric('No. Of Bills', f'{bill_tm}')
+        col4.metric('Average Cost', f'RM{(total_tm/bill_tm):,.2f}')
         col4.metric('Air Selangor Rate', f'RM{(total_air/total_m3):,.2f}/m3')
+        # ----
         col5.metric('IWK', f'RM{total_iwk:,.2f}')
+        col5.metric('No. Of Bills', f'{bill_iwk}')
+        col5.metric('Average Cost', f'RM{(total_iwk/bill_iwk):,.2f}')
         col5.metric('Total Utility Cost', f'RM{(total_tnb+total_air+total_tm+total_digi+total_iwk):,.2f}')
+        
         st.subheader('Job Sheet')
-        col1, col2 = st.columns(2)
-        col1.metric('Total Payment:', f'RM{fees_total.sum():,.2f}')
-        col2.metric('Total Jobs:', fees_total.__len__())
+        col1, col2, col3 = st.columns(3)
+        col1.metric('Total Payment', f'RM{fees_total.sum():,.2f}')
+        col2.metric('Total Jobs', fees_total.__len__())
+        col3.metric('Average Payment', f'RM{(fees_total.sum()/fees_total.__len__()):,.2f}')
         
         with st.expander('TNB Dataframe:'):
             # Graph
