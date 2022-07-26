@@ -94,7 +94,8 @@ if authentication_status:
     st.sidebar.subheader(f"User ID: {username}")
     st.sidebar.subheader(f"User Name: {name}")
 
-    selected = option_menu(menu_title = None, options = ['Dashboard','Job Sheet','Utility Form','Body Mass Index'], orientation='horizontal')
+    selected = option_menu(menu_title = None, options = ['Dashboard','Job Sheet','Utility Form','Body Mass Index'], 
+                            icons = ['grid-1x2','calendar2-event','card-checklist','calculator'], orientation='horizontal')
 
     # Creating Job Sheet Table Dataframe
     df = fetch_all_jobs()
@@ -191,35 +192,40 @@ if authentication_status:
     
     if selected == 'Dashboard':
         st.header('Summary:')
-        st.subheader('Utility')
+        st.subheader(':bulb: Utility')                                  # To select other emoji at https://www.webfx.com/tools/emoji-cheat-sheet/
         col1, col2, col3, col4, col5 = st.columns(5)
-        col1.metric('TNB', f'RM{total_tnb:,.2f}')
+        col1.write('TNB')
+        col1.metric('RM', f'{total_tnb:,.2f}')
         col1.metric('No. Of Bills', f'{bill_tnb}')
-        col1.metric('Average Cost', f'RM{(total_tnb/bill_tnb):,.2f}')
+        col1.metric('Average Cost', f'{(total_tnb/bill_tnb):,.2f}')
         col1.metric('kWh', f'{total_kwh:,.0f}')
         # ----
-        col2.metric('Air Selangor', f'RM{total_air:,.2f}')
+        col2.write('Air Selangor')
+        col2.metric('RM', f'{total_air:,.2f}')
         col2.metric('No. Of Bills', f'{bill_air}')
-        col2.metric('Average Cost', f'RM{(total_air/bill_air):,.2f}')
+        col2.metric('Average Cost', f'{(total_air/bill_air):,.2f}')
         col2.metric('m3', f'{total_m3:,.0f}')
         # ----
-        col3.metric('Digi', f'RM{total_digi:,.2f}')
+        col3.write('Digi')
+        col3.metric('RM', f'{total_digi:,.2f}')
         col3.metric('No. Of Bills', f'{bill_digi}')
-        col3.metric('Average Cost', f'RM{(total_digi/bill_digi):,.2f}')
-        col3.metric('TNB Rate', f'RM{(total_tnb/total_kwh):,.2f}/kWh')
+        col3.metric('Average Cost', f'{(total_digi/bill_digi):,.2f}')
+        col3.metric('TNB Rate (RM/kWh)', f'{(total_tnb/total_kwh):,.2f}')
         # ----
-        col4.metric('TM', f'RM{total_tm:,.2f}')
+        col4.write('TM')
+        col4.metric('RM', f'{total_tm:,.2f}')
         col4.metric('No. Of Bills', f'{bill_tm}')
-        col4.metric('Average Cost', f'RM{(total_tm/bill_tm):,.2f}')
-        col4.metric('Air Selangor Rate', f'RM{(total_air/total_m3):,.2f}/m3')
+        col4.metric('Average Cost', f'{(total_tm/bill_tm):,.2f}')
+        col4.metric('Air Selangor Rate (RM/m3)', f'{(total_air/total_m3):,.2f}')
         # ----
-        col5.metric('IWK', f'RM{total_iwk:,.2f}')
+        col5.write('IWK')
+        col5.metric('RM', f'{total_iwk:,.2f}')
         col5.metric('No. Of Bills', f'{bill_iwk}')
-        col5.metric('Average Cost', f'RM{(total_iwk/bill_iwk):,.2f}')
-        col5.metric('Total Utility Cost', f'RM{(total_tnb+total_air+total_tm+total_digi+total_iwk):,.2f}')
+        col5.metric('Average Cost', f'{(total_iwk/bill_iwk):,.2f}')
+        col5.metric('Total Utility Cost', f'{(total_tnb+total_air+total_tm+total_digi+total_iwk):,.2f}')
         
-        st.subheader('Job Sheet')
-        col1, col2, col3 = st.columns(3)
+        st.subheader(':books: Job Sheet')
+        col1, col2, col3, col4, col5 = st.columns(5)
         col1.metric('Total Payment', f'RM{fees_total.sum():,.2f}')
         col2.metric('Total Jobs', fees_total.__len__())
         col3.metric('Average Payment', f'RM{(fees_total.sum()/fees_total.__len__()):,.2f}')
