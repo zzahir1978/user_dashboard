@@ -35,9 +35,9 @@ DETA_KEY = 'c0jo61nr_19VVPZAnQBZPws1WGgaU2HDCW1kyth28'
 deta = Deta(DETA_KEY)
 db = deta.Base('job_sheet')
 
-def insert_job(dat, cli, add, cat, des, pay):
+def insert_job(dat, cli, add, cat, des, pay, remark):
     """Returns the user on a successful user creation, otherwise raises and error"""
-    return db.put({'date': dat, 'client': cli, 'address': add, 'category': cat, 'description': des,'payment': pay})
+    return db.put({'date': dat, 'client': cli, 'address': add, 'category': cat, 'description': des,'payment': pay, 'remark': remark})
 
 def fetch_all_jobs():
     """Returns a dict of all date"""
@@ -381,6 +381,8 @@ if authentication_status:
             for payment in pay:
                 st.number_input(f"{payment}:", min_value=0.0, max_value=10000.0, step=1e-3, format="%.2f", key=payment)
             
+            remark = st.text_area('Remarks:', placeholder='Enter a comment here...')
+            
             submitted = st.form_submit_button('Submit')
             if submitted:
                 cli = {client: st.session_state[client] for client in cli}
@@ -389,7 +391,7 @@ if authentication_status:
                 des = {description: st.session_state[description] for description in des}
                 pay = {payment: st.session_state[payment] for payment in pay}
                 dat = {date: st.session_state[date] for date in dat}
-                insert_job(dat, cli, add, cat, des, pay)
+                insert_job(dat, cli, add, cat, des, pay, remark)
                 st.success('Data saved!')
     
     if selected == 'Utility Form':
