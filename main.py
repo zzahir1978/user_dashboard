@@ -410,7 +410,7 @@ if authentication_status:
                 dat = {date: st.session_state[date] for date in dat}
                 insert_job(dat, cli, add, cat, des, pay, remark)
                 st.success('Data saved!')
-    
+
     if selected == 'Utility Form':
         st.header('Utility Expenses Form')
         with st.form('entry_form', clear_on_submit=True):
