@@ -401,8 +401,8 @@ if authentication_status:
             
             remark = st.text_area('Remarks:', placeholder='Enter a comment here...')
             
-            submitted1 = st.form_submit_button('Submit')
-            if submitted1:
+            submitted_job = st.form_submit_button('Submit')
+            if submitted_job:
                 cli = {client: st.session_state[client] for client in cli}
                 add = {address: st.session_state[address] for address in add}
                 cat = {category: st.session_state[category] for category in cat}
@@ -429,8 +429,8 @@ if authentication_status:
             
             comment = st.text_area('Remarks:', placeholder='Enter a comment here...')
 
-            submitted = st.form_submit_button('Submit')
-            if submitted:
+            submitted_util = st.form_submit_button('Submit')
+            if submitted_util:
                 uti = {utility: st.session_state[utility] for utility in uti}
                 dat2 = {date2: st.session_state[date2] for date2 in dat2}
                 exps = {expense: st.session_state[expense] for expense in exps}
