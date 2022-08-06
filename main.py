@@ -401,8 +401,8 @@ if authentication_status:
             
             remark = st.text_area('Remarks:', placeholder='Enter a comment here...')
             
-            submitted = st.form_submit_button('Submit')
-            if submitted:
+            submitted1 = st.form_submit_button('Submit')
+            if submitted1:
                 cli = {client: st.session_state[client] for client in cli}
                 add = {address: st.session_state[address] for address in add}
                 cat = {category: st.session_state[category] for category in cat}
