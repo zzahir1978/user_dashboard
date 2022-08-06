@@ -1,6 +1,7 @@
 from cgitb import text
 from cmath import exp
 from email.utils import collapse_rfc2231_value
+from turtle import update
 import streamlit as st
 from streamlit_option_menu import option_menu
 import streamlit.components.v1 as components
@@ -410,7 +411,7 @@ if authentication_status:
                 dat = {date: st.session_state[date] for date in dat}
                 insert_job(dat, cli, add, cat, des, pay, remark)
                 st.success('Data saved!')
-
+            
     if selected == 'Utility Form':
         st.header('Utility Expenses Form')
         with st.form('entry_form', clear_on_submit=True):
