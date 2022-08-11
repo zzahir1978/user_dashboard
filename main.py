@@ -194,6 +194,15 @@ if authentication_status:
     if selected == 'Dashboard':
         st.header('Summary:')
         st.subheader(':bulb: Utility')                                  # To select other emoji at https://www.webfx.com/tools/emoji-cheat-sheet/
+
+        labels = ['TNB','Air Selangor','Streamyx','DiGi']
+        values = [total_tnb, total_air, total_tm, total_digi]
+
+        # Use `hole` to create a donut-like pie chart
+        fig_main = go.Figure(data=[go.Pie(labels=labels, values=values, hole=.3,textinfo='label+percent')])
+        fig_main.update_layout(title_text='Overall Utilities Expenses (%)',title_x=0.5,font=dict(family="Helvetica", size=10),showlegend=False)
+        st.plotly_chart(fig_main, use_container_width=True)
+
         col1, col2, col3, col4, col5 = st.columns(5)
         col1.write('TNB')
         col1.metric('RM', f'{total_tnb:,.2f}')
