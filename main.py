@@ -2,6 +2,7 @@
 #from cmath import exp
 #from email.utils import collapse_rfc2231_value
 #from turtle import update
+from __future__ import annotations
 import streamlit as st
 from streamlit_option_menu import option_menu
 import streamlit.components.v1 as components
@@ -199,40 +200,49 @@ if authentication_status:
         values = [total_tnb, total_air, total_tm, total_digi]
 
         # Use `hole` to create a donut-like pie chart
-        fig_main = go.Figure(data=[go.Pie(labels=labels, values=values, hole=.3,textinfo='label+percent')])
-        fig_main.update_layout(title_text='Overall Utilities Expenses (%)',title_x=0.5,font=dict(family="Helvetica", size=10),showlegend=False)
-        st.plotly_chart(fig_main, use_container_width=True)
+        fig_main = go.Figure(data=[go.Pie(labels=labels, values=values, hole=0.6,textinfo='label+percent')])
+        fig_main.update_layout(title_text='',title_x=0.5,font=dict(family="Helvetica", size=10),showlegend=False,
+                                annotations=[dict(text='Utilities Cost', x=0.5, y=0.5, font_size=20, showarrow=False)])
+
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.metric('TNB', f'RM{total_tnb:,.2f}')
+            st.metric('Air Selangor', f'RM{total_air:,.2f}')
+            st.metric('TM Streamyx', f'RM{total_tm:,.2f}')
+            
+        with col2:
+            st.metric('DiGi', f'RM{total_digi:,.2f}')
+            st.metric('IWK', f'RM{total_iwk:,.2f}')
+            st.metric('Total Utility Cost', f'RM{(total_tnb+total_air+total_tm+total_digi+total_iwk):,.2f}')
+        
+        with col3:
+            st.plotly_chart(fig_main, use_container_width = True)
 
         col1, col2, col3, col4, col5 = st.columns(5)
         col1.write('TNB')
-        col1.metric('RM', f'{total_tnb:,.2f}')
         col1.metric('No. Of Bills', f'{bill_tnb}')
         col1.metric('Average Cost', f'{(total_tnb/bill_tnb):,.2f}')
         col1.metric('kWh', f'{total_kwh:,.0f}')
         # ----
         col2.write('Air Selangor')
-        col2.metric('RM', f'{total_air:,.2f}')
         col2.metric('No. Of Bills', f'{bill_air}')
         col2.metric('Average Cost', f'{(total_air/bill_air):,.2f}')
         col2.metric('m3', f'{total_m3:,.0f}')
         # ----
         col3.write('Digi')
-        col3.metric('RM', f'{total_digi:,.2f}')
         col3.metric('No. Of Bills', f'{bill_digi}')
         col3.metric('Average Cost', f'{(total_digi/bill_digi):,.2f}')
         col3.metric('TNB Rate (RM/kWh)', f'{(total_tnb/total_kwh):,.2f}')
         # ----
         col4.write('TM')
-        col4.metric('RM', f'{total_tm:,.2f}')
         col4.metric('No. Of Bills', f'{bill_tm}')
         col4.metric('Average Cost', f'{(total_tm/bill_tm):,.2f}')
         col4.metric('Air Selangor Rate (RM/m3)', f'{(total_air/total_m3):,.2f}')
         # ----
         col5.write('IWK')
-        col5.metric('RM', f'{total_iwk:,.2f}')
+        
         col5.metric('No. Of Bills', f'{bill_iwk}')
         col5.metric('Average Cost', f'{(total_iwk/bill_iwk):,.2f}')
-        col5.metric('Total Utility Cost', f'{(total_tnb+total_air+total_tm+total_digi+total_iwk):,.2f}')
         
         st.subheader(':books: Job Sheet')
         col1, col2, col3, col4, col5 = st.columns(5)
