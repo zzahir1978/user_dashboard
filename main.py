@@ -208,15 +208,16 @@ if authentication_status:
         with col1:
             st.metric('TNB', f'RM{total_tnb:,.2f}')
             st.metric('Air Selangor', f'RM{total_air:,.2f}')
-            st.metric('TM Streamyx', f'RM{total_tm:,.2f}')
             
         with col2:
             st.metric('DiGi', f'RM{total_digi:,.2f}')
+            st.metric('TM Streamyx', f'RM{total_tm:,.2f}')
+            
+        with col3:
             st.metric('IWK', f'RM{total_iwk:,.2f}')
             st.metric('Total Utility Cost', f'RM{(total_tnb+total_air+total_tm+total_digi+total_iwk):,.2f}')
-        
-        with col3:
-            st.plotly_chart(fig_main, use_container_width = True)
+
+        st.plotly_chart(fig_main, use_container_width = True)
 
         col1, col2, col3, col4, col5 = st.columns(5)
         col1.write('TNB')
