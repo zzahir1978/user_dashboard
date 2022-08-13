@@ -24,28 +24,6 @@ from datetime import datetime
 st.set_page_config('User Dashboard', ':file_folder:', layout='wide')         # https://www.webfx.com/tools/emoji-cheat-sheet/
 st.title(':file_folder:' + " " + 'User Dashboard')
 
-# Settings For Job Sheet Database
-dat = ['dat']
-cli = ['cli']
-add = ['add']
-cat = ['cat']
-des = ['des']
-pay = ['Fees']
-
-# Job Sheet Database Interface
-DETA_KEY = 'c0jo61nr_19VVPZAnQBZPws1WGgaU2HDCW1kyth28'
-deta = Deta(DETA_KEY)
-db = deta.Base('job_sheet')
-
-def insert_job(dat, cli, add, cat, des, pay, remark):
-    """Returns the user on a successful user creation, otherwise raises and error"""
-    return db.put({'date': dat, 'client': cli, 'address': add, 'category': cat, 'description': des,'payment': pay, 'remark': remark})
-
-def fetch_all_jobs():
-    """Returns a dict of all date"""
-    res = db.fetch()
-    return res.items
-
 # Setting for utility database
 uti = ['uti']
 dat2 = ['dat2']
@@ -96,74 +74,21 @@ if authentication_status:
     st.sidebar.subheader(f"User ID: {username}")
     st.sidebar.subheader(f"User Name: {name}")
 
-    selected = option_menu(menu_title = None, options = ['Dashboard','Job Sheet','Utility Form','Body Mass Index'], 
-                            icons = ['grid-1x2','calendar2-event','card-checklist','calculator'], orientation='horizontal')
+    selected = option_menu(menu_title = None, options = ['Dashboard','Job Sheet','Utility Form','User Info','Body Mass Index'], 
+                            icons = ['grid-1x2','calendar2-event','card-checklist','card-checklist','calculator'], orientation='horizontal')
 
-    # Creating Job Sheet Table Dataframe
-    df = fetch_all_jobs()
-    df = json.dumps(df)
-    df = pd.read_json(df)
-    # Creating new columns
-    address_1 = df['address'].map(Counter).groupby(df['key']).sum()
-    address_1 = df['address'].apply(lambda x: x.get('add')).dropna()
-    category_1 = df['category'].map(Counter).groupby(df['key']).sum()
-    category_1 = df['category'].apply(lambda x: x.get('cat')).dropna()
-    client_1 = df['client'].map(Counter).groupby(df['key']).sum()
-    client_1 = df['client'].apply(lambda x: x.get('cli')).dropna()
-    date_1 = df['date'].map(Counter).groupby(df['key']).sum()
-    date_1 = df['date'].apply(lambda x: x.get('dat')).dropna()
-    description_1 = df['description'].map(Counter).groupby(df['key']).sum()
-    description_1 = df['description'].apply(lambda x: x.get('des')).dropna()
-    payment_1 = df['payment'].map(Counter).groupby(df['key']).sum()
-    payment_1 = df['payment'].apply(lambda x: x.get('Fees')).dropna()
-    # Combined all new columns
-    df_new = pd.merge(address_1, category_1, left_index=True, right_index=True)
-    df_new = pd.merge(df_new, client_1, left_index=True, right_index=True)
-    df_new = pd.merge(df_new, date_1, left_index=True, right_index=True)
-    df_new = pd.merge(df_new, description_1, left_index=True, right_index=True)
-    df_new = pd.merge(df_new, payment_1, left_index=True, right_index=True)
-    df_new['payment'] = df_new['payment'].map('RM{:,.2f}'.format)
-    df_new['date'] = pd.to_datetime(df_new['date'])
-    df_new = df_new.sort_values(by='date')
-    df_new['date'] = df_new['date'].astype(str).str.replace('T','-', regex=True)
-    # -----
-    clients = pd.merge(client_1, payment_1, left_index=True, right_index=True)
-    clients = clients.groupby('client').sum()
-    clients['payment'] = clients['payment'].map('RM{:,.2f}'.format)
-    # ----
-    df = pd.merge(df, date_1, left_index=True, right_index=True)
-    df['date_y'] = pd.to_datetime(df['date_y'])
-    # Creating yearly table
-    # 2020
-    df_2020 = df[(df['date_y'] >= "2020-01-01") & (df['date_y'] <="2020-12-01")]
-    df_2020 = df_2020.sort_values(by='date_y')
-    # 2021
-    df_2021 = df[(df['date_y'] >= "2021-01-01") & (df['date_y'] <="2021-12-01")]
-    df_2021 = df_2021.sort_values(by='date_y')
-    # 2022
-    df_2022 = df[(df['date_y'] >= "2022-01-01") & (df['date_y'] <="2022-12-01")]
-    df_2022 = df_2022.sort_values(by='date_y')
-    # ----
-    fees_total = df['payment'].map(Counter).groupby(df['key']).sum()
-    fees_total = df['payment'].apply(lambda x: x.get('Fees')).dropna()
-    fees_2020 = df_2020['payment'].map(Counter).groupby(df_2020['key']).sum()
-    fees_2020 = df_2020['payment'].apply(lambda x: x.get('Fees')).dropna()
-    fees_2021 = df_2021['payment'].map(Counter).groupby(df_2021['key']).sum()
-    fees_2021 = df_2021['payment'].apply(lambda x: x.get('Fees')).dropna()
-    fees_2022 = df_2022['payment'].map(Counter).groupby(df_2022['key']).sum()
-    fees_2022 = df_2022['payment'].apply(lambda x: x.get('Fees')).dropna()
     # Creating Utility Table Dataframe
     df2 = fetch_all_utils()
     df2 = json.dumps(df2)
     df2 = pd.read_json(df2)
     # Creating new columns
-    expense_1 = df2['expense'].map(Counter).groupby(df['key']).sum()
+    expense_1 = df2['expense'].map(Counter).groupby(df2['key']).sum()
     expense_1 = df2['expense'].apply(lambda x: x.get('Cost')).dropna()
-    usage_1 = df2['usage'].map(Counter).groupby(df['key']).sum()
+    usage_1 = df2['usage'].map(Counter).groupby(df2['key']).sum()
     usage_1 = df2['usage'].apply(lambda x: x.get('Usage')).dropna()
-    utility_1 = df2['utility'].map(Counter).groupby(df['key']).sum()
+    utility_1 = df2['utility'].map(Counter).groupby(df2['key']).sum()
     utility_1 = df2['utility'].apply(lambda x: x.get('uti')).dropna()
-    date_2 = df2['date'].map(Counter).groupby(df['key']).sum()
+    date_2 = df2['date'].map(Counter).groupby(df2['key']).sum()
     date_2 = df2['date'].apply(lambda x: x.get('dat2')).dropna()
     # Combined all new columns
     df2_new = pd.merge(date_2, utility_1, left_index=True, right_index=True)
@@ -244,12 +169,6 @@ if authentication_status:
         
         col5.metric('No. Of Bills', f'{bill_iwk}')
         col5.metric('Average Cost', f'{(total_iwk/bill_iwk):,.2f}')
-        
-        st.subheader(':books: Job Sheet')
-        col1, col2, col3, col4, col5 = st.columns(5)
-        col1.metric('Total Payment', f'RM{fees_total.sum():,.2f}')
-        col2.metric('Total Jobs', fees_total.__len__())
-        col3.metric('Average Payment', f'RM{(fees_total.sum()/fees_total.__len__()):,.2f}')
         
         with st.expander('TNB Dataframe:'):
             # Graph
@@ -344,6 +263,126 @@ if authentication_status:
             fig_table_iwk.update_layout(margin=dict(t=5,b=5,l=5,r=5))
             st.plotly_chart(fig_table_iwk, use_container_width=True)
 
+    if selected == 'Job Sheet':
+
+        # Settings For Job Sheet Database
+        dat = ['dat']
+        cli = ['cli']
+        add = ['add']
+        cat = ['cat']
+        des = ['des']
+        pay = ['Fees']
+
+        # Job Sheet Database Interface
+        DETA_KEY = 'c0jo61nr_19VVPZAnQBZPws1WGgaU2HDCW1kyth28'
+        deta = Deta(DETA_KEY)
+        db = deta.Base('job_sheet')
+
+        def insert_job(dat, cli, add, cat, des, pay, remark):
+            """Returns the user on a successful user creation, otherwise raises and error"""
+            return db.put({'date': dat, 'client': cli, 'address': add, 'category': cat, 'description': des,'payment': pay, 'remark': remark})
+
+        def fetch_all_jobs():
+            """Returns a dict of all date"""
+            res = db.fetch()
+            return res.items
+
+        # Creating Job Sheet Table Dataframe
+        df = fetch_all_jobs()
+        df = json.dumps(df)
+        df = pd.read_json(df)
+        # Creating new columns
+        address_1 = df['address'].map(Counter).groupby(df['key']).sum()
+        address_1 = df['address'].apply(lambda x: x.get('add')).dropna()
+        category_1 = df['category'].map(Counter).groupby(df['key']).sum()
+        category_1 = df['category'].apply(lambda x: x.get('cat')).dropna()
+        client_1 = df['client'].map(Counter).groupby(df['key']).sum()
+        client_1 = df['client'].apply(lambda x: x.get('cli')).dropna()
+        date_1 = df['date'].map(Counter).groupby(df['key']).sum()
+        date_1 = df['date'].apply(lambda x: x.get('dat')).dropna()
+        description_1 = df['description'].map(Counter).groupby(df['key']).sum()
+        description_1 = df['description'].apply(lambda x: x.get('des')).dropna()
+        payment_1 = df['payment'].map(Counter).groupby(df['key']).sum()
+        payment_1 = df['payment'].apply(lambda x: x.get('Fees')).dropna()
+        # Combined all new columns
+        df_new = pd.merge(address_1, category_1, left_index=True, right_index=True)
+        df_new = pd.merge(df_new, client_1, left_index=True, right_index=True)
+        df_new = pd.merge(df_new, date_1, left_index=True, right_index=True)
+        df_new = pd.merge(df_new, description_1, left_index=True, right_index=True)
+        df_new = pd.merge(df_new, payment_1, left_index=True, right_index=True)
+        df_new['payment'] = df_new['payment'].map('RM{:,.2f}'.format)
+        df_new['date'] = pd.to_datetime(df_new['date'])
+        df_new = df_new.sort_values(by='date')
+        df_new['date'] = df_new['date'].astype(str).str.replace('T','-', regex=True)
+        # -----
+        clients = pd.merge(client_1, payment_1, left_index=True, right_index=True)
+        clients = clients.groupby('client').sum()
+        clients['payment'] = clients['payment'].map('RM{:,.2f}'.format)
+        # ----
+        df = pd.merge(df, date_1, left_index=True, right_index=True)
+        df['date_y'] = pd.to_datetime(df['date_y'])
+        # Creating yearly table
+        # 2020
+        df_2020 = df[(df['date_y'] >= "2020-01-01") & (df['date_y'] <="2020-12-01")]
+        df_2020 = df_2020.sort_values(by='date_y')
+        # 2021
+        df_2021 = df[(df['date_y'] >= "2021-01-01") & (df['date_y'] <="2021-12-01")]
+        df_2021 = df_2021.sort_values(by='date_y')
+        # 2022
+        df_2022 = df[(df['date_y'] >= "2022-01-01") & (df['date_y'] <="2022-12-01")]
+        df_2022 = df_2022.sort_values(by='date_y')
+        # ----
+        fees_total = df['payment'].map(Counter).groupby(df['key']).sum()
+        fees_total = df['payment'].apply(lambda x: x.get('Fees')).dropna()
+        fees_2020 = df_2020['payment'].map(Counter).groupby(df_2020['key']).sum()
+        fees_2020 = df_2020['payment'].apply(lambda x: x.get('Fees')).dropna()
+        fees_2021 = df_2021['payment'].map(Counter).groupby(df_2021['key']).sum()
+        fees_2021 = df_2021['payment'].apply(lambda x: x.get('Fees')).dropna()
+        fees_2022 = df_2022['payment'].map(Counter).groupby(df_2022['key']).sum()
+        fees_2022 = df_2022['payment'].apply(lambda x: x.get('Fees')).dropna()
+
+        st.header('Job Sheet Form')
+        #st.write("---")
+        with st.form('entry_form', clear_on_submit=True):
+            col1, col2 = st.columns(2)
+            with col1:
+                for client in cli:
+                    st.text_input('Client:', placeholder='Please enter client name', key=client)
+                for address in add:
+                    st.text_input('Address:', placeholder='Please enter client address', key=address)
+            with col2:
+                for date in dat:
+                    st.text_input('Date:', placeholder='Date format in mm/dd/yy',key=date)
+                for category in cat:
+                    #st.text_input('Category:', key=category)
+                    st.selectbox('Category:',('Inspection','Online Survey','Voice Recording','Website Design'), key=category)
+            st.write("---")
+            for description in des:
+                st.text_area('Works Description:', placeholder='Please enter works description here', key=description)
+
+            #with st.expander("Payment:"):
+            for payment in pay:
+                st.number_input(f"{payment}:", min_value=0.0, max_value=10000.0, step=1e-3, format="%.2f", key=payment)
+            
+            remark = st.text_area('Remarks:', placeholder='Enter a comment here...')
+            
+            submitted_job = st.form_submit_button('Submit')
+            if submitted_job:
+                cli = {client: st.session_state[client] for client in cli}
+                add = {address: st.session_state[address] for address in add}
+                cat = {category: st.session_state[category] for category in cat}
+                des = {description: st.session_state[description] for description in des}
+                pay = {payment: st.session_state[payment] for payment in pay}
+                dat = {date: st.session_state[date] for date in dat}
+                insert_job(dat, cli, add, cat, des, pay, remark)
+                st.success('Data saved!')
+            
+        st.subheader(':books: Job Sheet')
+        col1, col2, col3, col4, col5 = st.columns(5)
+        col1.metric('Total Payment', f'RM{fees_total.sum():,.2f}')
+        col2.metric('Total Jobs', fees_total.__len__())
+        col3.metric('Average Payment', f'RM{(fees_total.sum()/fees_total.__len__()):,.2f}')
+
         with st.expander('Job Sheet Summary:'):
             col1, col2, col3 = st.columns(3)
             with col1:
@@ -395,43 +434,6 @@ if authentication_status:
             fig_table_dataframe.update_layout(margin=dict(t=5,b=5,l=5,r=5))
             st.plotly_chart(fig_table_dataframe, use_container_width=True)
 
-    if selected == 'Job Sheet':
-        st.header('Job Sheet Form')
-        #st.write("---")
-        with st.form('entry_form', clear_on_submit=True):
-            col1, col2 = st.columns(2)
-            with col1:
-                for client in cli:
-                    st.text_input('Client:', placeholder='Please enter client name', key=client)
-                for address in add:
-                    st.text_input('Address:', placeholder='Please enter client address', key=address)
-            with col2:
-                for date in dat:
-                    st.text_input('Date:', placeholder='Date format in mm/dd/yy',key=date)
-                for category in cat:
-                    #st.text_input('Category:', key=category)
-                    st.selectbox('Category:',('Inspection','Online Survey','Voice Recording','Website Design'), key=category)
-            st.write("---")
-            for description in des:
-                st.text_area('Works Description:', placeholder='Please enter works description here', key=description)
-
-            #with st.expander("Payment:"):
-            for payment in pay:
-                st.number_input(f"{payment}:", min_value=0.0, max_value=10000.0, step=1e-3, format="%.2f", key=payment)
-            
-            remark = st.text_area('Remarks:', placeholder='Enter a comment here...')
-            
-            submitted_job = st.form_submit_button('Submit')
-            if submitted_job:
-                cli = {client: st.session_state[client] for client in cli}
-                add = {address: st.session_state[address] for address in add}
-                cat = {category: st.session_state[category] for category in cat}
-                des = {description: st.session_state[description] for description in des}
-                pay = {payment: st.session_state[payment] for payment in pay}
-                dat = {date: st.session_state[date] for date in dat}
-                insert_job(dat, cli, add, cat, des, pay, remark)
-                st.success('Data saved!')
-            
     if selected == 'Utility Form':
         st.header('Utility Expenses Form')
         with st.form('entry_form', clear_on_submit=True):
@@ -457,6 +459,84 @@ if authentication_status:
                 usa = {usage: st.session_state[usage] for usage in usa}
                 insert_util(uti,dat2,exps,usa,comment)
                 st.success('Data saved!')
+
+    if selected == 'User Info':
+        # Database connection
+        DETA_KEY = "c0jo61nr_BhSm5qHprUP75vRSdEmumYfoS1KMCtQW"
+        # Initialize with a project key
+        deta = Deta(DETA_KEY)
+        # This is how to create/connect a database
+        db = deta.Base("test_db")
+        # Database function
+        # Insert new data to db
+        def insert_data(username, name, email,address,ic,dob):
+            """Returns the user on a successful user creation, otherwise raises and error"""
+            return db.put({"key": username, "name": name, "email": email, "address": address, "ic": ic, "dob": dob})
+        # Call all data from db
+        def fetch_all_data():
+            """Returns a dict of all periods"""
+            res = db.fetch()
+            return res.items
+        # Update data from db
+        def update_data(username, updates):
+            """If the item is updated, returns None. Otherwise, an exception is raised"""
+            return db.update(updates, username)
+        # Delete data from db
+        def delete_data(username):
+            """Always returns None, even if the key does not exist"""
+            return db.delete(username)
+
+        with st.form('entry_form', clear_on_submit=True):
+            col1, col2 = st.columns(2)
+            with col1:
+                name = st.text_input('Name:', placeholder='Please enter full name')
+                ic = st.text_input('Identiy Card No.:', placeholder='Please enter identity card no.')
+                address = st.text_area('Address:', placeholder='Please enter address')    
+                
+            with col2:
+                dob = st.text_input('Date Of Birth:', placeholder='Please enter date of birth in mm/dd/yy')
+                email = st.text_input('Email:', placeholder='Please enter email address')
+                username = st.text_input('Username:', placeholder='Please enter username')
+                
+            col1, col2, col3 = st.columns(3)
+            with col1:    
+                saved_data = st.form_submit_button('Submit:')
+                if saved_data:
+                    insert_data(username, name, email,address,ic,dob)
+                    st.success('Data saved!')
+            with col2:
+                updates_data = st.form_submit_button('Update:')
+                if updates_data:
+                    username_1 = username
+                    name_1 = 'name'
+                    nam = name
+                    email_1 = 'email'
+                    ema = email
+                    address_1 = 'address'
+                    add = address
+                    ic_1 = 'ic'
+                    ics = ic
+                    dob_1 = 'dob'
+                    dob = dob
+                    update_data(username, updates={name_1:nam, email_1:ema, address_1:add, ic_1:ics, dob_1:dob})
+                    st.success('Data updates!')
+            
+            with col3:
+                del_data = st.form_submit_button('Delete:')
+                st.write('Key in username to delete!')
+                if del_data:
+                    username_2 = username
+                    delete_data(username)
+                    st.success('Data delete!')
+
+        st.subheader('Table Dataframe:')
+        data = fetch_all_data()
+        #data = json.dumps(data)
+        #data = pd.read_json(data)
+        #data = data[['key','name','email','ic','dob','address']]
+        #data.rename(columns = {'key':'username'}, inplace=True)
+        #data = data.sort_values(by='name').reset_index(drop=True)
+        st.table(data)
 
     if selected == 'Body Mass Index':
         outside_expander_area = st.container()
