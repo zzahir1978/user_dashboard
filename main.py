@@ -82,6 +82,7 @@ if authentication_status:
     df2 = json.dumps(df2)
     df2 = pd.read_json(df2)
     # Creating new columns
+    key_1 = df2['key']
     expense_1 = df2['expense'].map(Counter).groupby(df2['key']).sum()
     expense_1 = df2['expense'].apply(lambda x: x.get('Cost')).dropna()
     usage_1 = df2['usage'].map(Counter).groupby(df2['key']).sum()
@@ -91,7 +92,8 @@ if authentication_status:
     date_2 = df2['date'].map(Counter).groupby(df2['key']).sum()
     date_2 = df2['date'].apply(lambda x: x.get('dat2')).dropna()
     # Combined all new columns
-    df2_new = pd.merge(date_2, utility_1, left_index=True, right_index=True)
+    df2_new = pd.merge(key_1, date_2, left_index=True, right_index=True)
+    df2_new = pd.merge(df2_new, utility_1, left_index=True, right_index=True)
     df2_new = pd.merge(df2_new, expense_1, left_index=True, right_index=True)
     df2_new = pd.merge(df2_new, usage_1, left_index=True, right_index=True)
     df2_new['date'] = pd.to_datetime(df2_new['date'])
@@ -186,8 +188,8 @@ if authentication_status:
             fig_tnb.update_yaxes(showgrid=False, zeroline=False, showline=True, linewidth=2, linecolor='black')
             st.plotly_chart(fig_tnb, use_container_width=True)
             # Table
-            fig_table_tnb = go.Figure(data=[go.Table(columnwidth=[1,1,1,1], header=dict(values=list(df_TNB.columns),fill_color='paleturquoise',align='center'),
-                                cells=dict(values=[df_TNB.date, df_TNB.utility, df_TNB.expense, df_TNB.usage],fill_color='lavender',align='center'))])
+            fig_table_tnb = go.Figure(data=[go.Table(columnwidth=[1,1,1,1,1], header=dict(values=list(df_TNB.columns),fill_color='paleturquoise',align='center'),
+                                cells=dict(values=[df_TNB.key, df_TNB.date, df_TNB.utility, df_TNB.expense, df_TNB.usage],fill_color='lavender',align='center'))])
             fig_table_tnb.update_layout(margin=dict(t=5,b=5,l=5,r=5))
             st.plotly_chart(fig_table_tnb, use_container_width=True)
         
@@ -208,7 +210,7 @@ if authentication_status:
             st.plotly_chart(fig_air, use_container_width=True)
             # Table
             fig_table_air = go.Figure(data=[go.Table(columnwidth=[1,1,1,1], header=dict(values=list(df_AIR.columns),fill_color='paleturquoise',align='center'),
-                                cells=dict(values=[df_AIR.date, df_AIR.utility, df_AIR.expense, df_AIR.usage],fill_color='lavender',align='center'))])
+                                cells=dict(values=[df_AIR.key, df_AIR.date, df_AIR.utility, df_AIR.expense, df_AIR.usage],fill_color='lavender',align='center'))])
             fig_table_air.update_layout(margin=dict(t=5,b=5,l=5,r=5))
             st.plotly_chart(fig_table_air, use_container_width=True)
 
@@ -225,7 +227,7 @@ if authentication_status:
             st.plotly_chart(fig_digi, use_container_width=True)
             # Table
             fig_table_digi = go.Figure(data=[go.Table(columnwidth=[1,1,1,1], header=dict(values=list(df_DIGI.columns),fill_color='paleturquoise',align='center'),
-                                cells=dict(values=[df_DIGI.date, df_DIGI.utility, df_DIGI.expense, df_DIGI.usage],fill_color='lavender',align='center'))])
+                                cells=dict(values=[df_DIGI.key, df_DIGI.date, df_DIGI.utility, df_DIGI.expense, df_DIGI.usage],fill_color='lavender',align='center'))])
             fig_table_digi.update_layout(margin=dict(t=5,b=5,l=5,r=5))
             st.plotly_chart(fig_table_digi, use_container_width=True)
 
@@ -242,7 +244,7 @@ if authentication_status:
             st.plotly_chart(fig_tm, use_container_width=True)
             # Table
             fig_table_tm = go.Figure(data=[go.Table(columnwidth=[1,1,1,1], header=dict(values=list(df_TM.columns),fill_color='paleturquoise',align='center'),
-                                cells=dict(values=[df_TM.date, df_TM.utility, df_TM.expense, df_TM.usage],fill_color='lavender',align='center'))])
+                                cells=dict(values=[df_TM.key, df_TM.date, df_TM.utility, df_TM.expense, df_TM.usage],fill_color='lavender',align='center'))])
             fig_table_tm.update_layout(margin=dict(t=5,b=5,l=5,r=5))
             st.plotly_chart(fig_table_tm, use_container_width=True)
         
@@ -259,7 +261,7 @@ if authentication_status:
             st.plotly_chart(fig_iwk, use_container_width=True)
             # Table
             fig_table_iwk = go.Figure(data=[go.Table(columnwidth=[1,1,1,1], header=dict(values=list(df_IWK.columns),fill_color='paleturquoise',align='center'),
-                                cells=dict(values=[df_IWK.date, df_IWK.utility, df_IWK.expense, df_IWK.usage],fill_color='lavender',align='center'))])
+                                cells=dict(values=[df_IWK.key, df_IWK.date, df_IWK.utility, df_IWK.expense, df_IWK.usage],fill_color='lavender',align='center'))])
             fig_table_iwk.update_layout(margin=dict(t=5,b=5,l=5,r=5))
             st.plotly_chart(fig_table_iwk, use_container_width=True)
 
