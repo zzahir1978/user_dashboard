@@ -31,7 +31,7 @@ exps = ['Cost']
 usa = ['Usage']
 
 # Utility Database Interface
-DETA_KEY = 'c0jo61nr_Fk3geHfjZYDv53FuxFYaEPjhitTawRVz'              # Key Name: b993nq, Key Description: Project Key: b993nq, Project Key: c0jo61nr_Fk3geHfjZYDv53FuxFYaEPjhitTawRVz
+DETA_KEY = st.secrets['deta_key_1']              # Key Name: b993nq, Key Description: Project Key: b993nq, Project Key: c0jo61nr_Fk3geHfjZYDv53FuxFYaEPjhitTawRVz
 deta = Deta(DETA_KEY)
 db2 = deta.Base('utility_db')
 
@@ -45,7 +45,7 @@ def fetch_all_utils():
     return res.items
 
 # User Password Database
-DETA_KEY_1 = "c0jo61nr_P1wSYy8XFqjnwgyeWUXqU635PWYK4A85"
+DETA_KEY_1 = st.secrets['deta_key_2']
 deta_1 = Deta(DETA_KEY_1)                           # Initialize with a project key
 db_1 = deta_1.Base("users_db")                      # This is how to create/connect a database
 
