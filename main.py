@@ -2,7 +2,7 @@
 #from cmath import exp
 #from email.utils import collapse_rfc2231_value
 #from turtle import update
-from __future__ import annotations
+#from __future__ import annotations
 import streamlit as st
 from streamlit_option_menu import option_menu
 import streamlit.components.v1 as components
@@ -31,7 +31,7 @@ exps = ['Cost']
 usa = ['Usage']
 
 # Utility Database Interface
-DETA_KEY = st.secrets['deta_key_1']              # Key Name: b993nq, Key Description: Project Key: b993nq, Project Key: c0jo61nr_Fk3geHfjZYDv53FuxFYaEPjhitTawRVz
+DETA_KEY = st.secrets['deta_key_1']              # 
 deta = Deta(DETA_KEY)
 db2 = deta.Base('utility_db')
 
