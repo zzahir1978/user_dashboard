@@ -151,24 +151,23 @@ if authentication_status:
         col1.metric('No. Of Bills', f'{bill_tnb}')
         col1.metric('Average Cost', f'{(total_tnb/bill_tnb):,.2f}')
         col1.metric('kWh', f'{total_kwh:,.0f}')
+        col1.metric('TNB Rate (RM/kWh)', f'{(total_tnb/total_kwh):,.2f}')
         # ----
         col2.write('Air Selangor')
         col2.metric('No. Of Bills', f'{bill_air}')
         col2.metric('Average Cost', f'{(total_air/bill_air):,.2f}')
         col2.metric('m3', f'{total_m3:,.0f}')
+        col2.metric('Air Selangor Rate (RM/m3)', f'{(total_air/total_m3):,.2f}')
         # ----
         col3.write('Digi')
         col3.metric('No. Of Bills', f'{bill_digi}')
         col3.metric('Average Cost', f'{(total_digi/bill_digi):,.2f}')
-        col3.metric('TNB Rate (RM/kWh)', f'{(total_tnb/total_kwh):,.2f}')
         # ----
         col4.write('TM')
         col4.metric('No. Of Bills', f'{bill_tm}')
         col4.metric('Average Cost', f'{(total_tm/bill_tm):,.2f}')
-        col4.metric('Air Selangor Rate (RM/m3)', f'{(total_air/total_m3):,.2f}')
         # ----
         col5.write('IWK')
-        
         col5.metric('No. Of Bills', f'{bill_iwk}')
         col5.metric('Average Cost', f'{(total_iwk/bill_iwk):,.2f}')
         
